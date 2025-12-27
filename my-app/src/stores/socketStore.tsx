@@ -13,23 +13,18 @@ import {
   subscribeToAllAssets,
   unsubscribeFromAllAssets,
 } from '@/lib/socket';
-import type { Asset } from '@/types';
-
-interface AssetPriceUpdate {
-  assetId: string;
-  currentPrice: number;
-  timestamp: string;
-}
+import { SERVER_EVENTS, AssetPriceUpdatePayload } from '../lib/socketEvents';
 
 interface SocketStore {
   socket: Socket | null;
   isConnected: boolean;
   assetPrices: Map<string, number>;
+  lastUpdateTime: string | null;
 
   // Actions
   connect: () => void;
   disconnect: () => void;
-  updateAssetPrice: (update: AssetPriceUpdate) => void;
+  updateAssetPrice: (update: AssetPriceUpdatePayload['data']) => void;
   getAssetPrice: (assetId: string) => number | undefined;
 }
 
@@ -37,6 +32,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   isConnected: false,
   assetPrices: new Map(),
+  lastUpdateTime: null,
 
   connect: () => {
     const socket = initializeSocket();
@@ -52,8 +48,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       set({ isConnected: false });
     });
 
-    // Listen for price updates
-    socket.on('asset_price_update', (payload: { event: string; data: AssetPriceUpdate }) => {
+    // Listen for price updates using shared event name
+    socket.on(SERVER_EVENTS.ASSET_PRICE_UPDATE, (payload: AssetPriceUpdatePayload) => {
       get().updateAssetPrice(payload.data);
     });
 
@@ -69,11 +65,14 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     }
   },
 
-  updateAssetPrice: (update: AssetPriceUpdate) => {
+  updateAssetPrice: (update) => {
     set((state) => {
       const newPrices = new Map(state.assetPrices);
       newPrices.set(update.assetId, update.currentPrice);
-      return { assetPrices: newPrices };
+      return {
+        assetPrices: newPrices,
+        lastUpdateTime: update.timestamp,
+      };
     });
   },
 

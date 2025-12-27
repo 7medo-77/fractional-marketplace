@@ -31,6 +31,15 @@ Implement:
 
     Empty states
 
+### TASK 11: Shared socket.io event names and payload types
+
+Implement:
+  move the backend/src/handlers/socketEvents.ts file to a shared directory that is neither in back-end nor front-end (my-app) directories
+  Add any event names unique to the front-end to socketEvents too
+  Use the declared variables in the socket.ts and any other place in the front end which uses events.
+  to achieve a single source of truth for types crossing the interfaces
+
+
 ## IMPLEMENTATION RULES (MUST FOLLOW)
 1. Server Components First
 

@@ -4,6 +4,7 @@
  */
 
 import { io, Socket } from 'socket.io-client';
+import { CLIENT_EVENTS } from './socketEvents';
 
 let socket: Socket | null = null;
 
@@ -66,26 +67,26 @@ export function disconnectSocket(): void {
  * Subscribe to all assets price updates
  */
 export function subscribeToAllAssets(socket: Socket): void {
-  socket.emit('subscribe_all_assets');
+  socket.emit(CLIENT_EVENTS.SUBSCRIBE_ALL_ASSETS);
 }
 
 /**
  * Unsubscribe from all assets price updates
  */
 export function unsubscribeFromAllAssets(socket: Socket): void {
-  socket.emit('unsubscribe_all_assets');
+  socket.emit(CLIENT_EVENTS.UNSUBSCRIBE_ALL_ASSETS);
 }
 
 /**
  * Subscribe to specific asset
  */
 export function subscribeToAsset(socket: Socket, assetId: string): void {
-  socket.emit('subscribe_asset', assetId);
+  socket.emit(CLIENT_EVENTS.SUBSCRIBE_ASSET, assetId);
 }
 
 /**
  * Unsubscribe from specific asset
  */
 export function unsubscribeFromAsset(socket: Socket, assetId: string): void {
-  socket.emit('unsubscribe_asset', assetId);
+  socket.emit(CLIENT_EVENTS.UNSUBSCRIBE_ASSET, assetId);
 }

@@ -1,6 +1,7 @@
 import { getAssets } from '@/lib/api';
 import { AssetCardList } from '@/components/assets/AssetCardList';
 import { AssetPageHeader } from '@/components/assets/AssetPageHeader';
+import { StatusBar } from '@/components/shared/status-bar/StatusBar';
 
 /**
  * Assets Page - Server Component
@@ -11,9 +12,9 @@ export default async function AssetsPage() {
   const initialAssets = await getAssets();
 
   return (
-    <div>
+    <div className="space-y-6">
       <AssetPageHeader />
-      {/* Client Component that receives server-side data and subscribes to WebSocket */}
+      <StatusBar />
       <AssetCardList initialAssets={initialAssets} />
     </div>
   );

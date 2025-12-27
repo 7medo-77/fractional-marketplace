@@ -1,10 +1,10 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { useSocketStore } from '@/stores/socketStore';
 
 export function Footer() {
-  // TODO: Replace with actual WebSocket connection status from store
-  const isConnected = true;
+  const isConnected = useSocketStore((state) => state.isConnected);
 
   return (
     <footer className="w-full border-t bg-background">
