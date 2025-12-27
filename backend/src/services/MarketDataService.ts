@@ -26,9 +26,13 @@ const DRIFT_CONFIG = {
 class MarketDataService {
   private io: Server;
   private interval: NodeJS.Timeout | null = null;
+  private tickCount: number = 0;
 
   // Separate order storage per asset - NEVER mix assets
   private ordersByAsset: Map<string, InternalOrder[]> = new Map();
+
+  // Track which assets had price changes this tick
+  private priceChangesThisTick: Set<string> = new Set();
 
   constructor(io: Server) {
     this.io = io;
@@ -53,9 +57,17 @@ class MarketDataService {
     this.generateInitialOrders();
 
     this.interval = setInterval(() => {
+      this.tickCount++;
+      this.priceChangesThisTick.clear();
+
+      const startTime = Date.now();
+
       this.generateMockOrders();
       this.applyPriceDrift();
       this.rebuildAndBroadcastOrderBooks();
+
+      const elapsed = Date.now() - startTime;
+      console.log(`📊 Tick #${this.tickCount} completed in ${elapsed}ms`);
     }, 500);
 
     console.log('📈 MarketDataService started - updating every 500ms');
@@ -87,6 +99,8 @@ class MarketDataService {
         this.addNewAsk(asset.id, asset.currentPrice);
       }
     });
+
+    console.log('✅ Initial order books populated');
   }
 
   /**
@@ -140,8 +154,8 @@ class MarketDataService {
    */
   private applyPriceDrift() {
     const assets = AssetStore.getAllAssets();
-    const timestamp = new Date().toISOString();
 
+    // STEP 1A: Calculate and update all prices in the store
     assets.forEach((asset) => {
       const orders = this.ordersByAsset.get(asset.id) || [];
 
@@ -164,8 +178,6 @@ class MarketDataService {
       const imbalance = (totalBidQuantity - totalAskQuantity) / totalQuantity;
 
       // Calculate price drift
-      // Positive imbalance (more bids) → price goes UP
-      // Negative imbalance (more asks) → price goes DOWN
       const driftAmount =
         asset.currentPrice *
         imbalance *
@@ -174,28 +186,39 @@ class MarketDataService {
 
       const newPrice = this.roundToTwo(asset.currentPrice + driftAmount);
 
-      // Ensure price doesn't go negative or zero
+      // Update price in store if changed
       if (newPrice > 0 && newPrice !== asset.currentPrice) {
-        // Update the asset price in store
         AssetStore.updateAssetPrice(asset.id, newPrice);
+        this.priceChangesThisTick.add(asset.id);
+      }
+    });
 
-        // STEP 3: Emit price update to BOTH rooms
+    // STEP 1B: Emit all price updates AFTER the loop
+    if (this.priceChangesThisTick.size > 0) {
+      const timestamp = new Date().toISOString();
+
+      this.priceChangesThisTick.forEach((assetId) => {
+        const asset = AssetStore.getAsset(assetId);
+        if (!asset) return;
+
         const priceUpdatePayload = {
           event: 'asset_price_update',
           data: {
             assetId: asset.id,
-            currentPrice: newPrice,
+            currentPrice: asset.currentPrice,
             timestamp,
           },
         };
 
         // Emit to specific asset room (for detail pages)
-        this.io.to(`asset:${asset.id}`).emit('asset_price_update', priceUpdatePayload);
+        this.io.to(`asset:${assetId}`).emit('asset_price_update', priceUpdatePayload);
 
         // Emit to landing page room (for all assets overview)
         this.io.to('assets:all').emit('asset_price_update', priceUpdatePayload);
-      }
-    });
+      });
+
+      console.log(`💰 Price updates: ${this.priceChangesThisTick.size} assets`);
+    }
   }
 
   /**
@@ -207,7 +230,7 @@ class MarketDataService {
     if (!orders) return;
 
     // Price: 85% to 95% of current price (5-15% below)
-    const priceMultiplier = 0.85 + Math.random() * 0.1; // 0.85 to 0.95
+    const priceMultiplier = 0.85 + Math.random() * 0.1;
     const price = this.roundToTwo(currentPrice * priceMultiplier);
 
     const order: InternalOrder = {
@@ -231,7 +254,7 @@ class MarketDataService {
     if (!orders) return;
 
     // Price: 105% to 115% of current price (5-15% above)
-    const priceMultiplier = 1.05 + Math.random() * 0.1; // 1.05 to 1.15
+    const priceMultiplier = 1.05 + Math.random() * 0.1;
     const price = this.roundToTwo(currentPrice * priceMultiplier);
 
     const order: InternalOrder = {
@@ -282,6 +305,7 @@ class MarketDataService {
 
   /**
    * Rebuild order books from raw orders and broadcast via Socket.io
+   * compute first, emit AFTER the loop
    *
    * Computes all data needed for depth chart on backend:
    * - Aggregated price levels with quantities and totals
@@ -291,7 +315,9 @@ class MarketDataService {
    */
   private rebuildAndBroadcastOrderBooks() {
     const assets = AssetStore.getAllAssets();
+    const timestamp = new Date().toISOString();
 
+    // STEP 1A: Compute and update all order books in the store
     assets.forEach((asset) => {
       const orders = this.ordersByAsset.get(asset.id) || [];
 
@@ -331,33 +357,38 @@ class MarketDataService {
         bestAsk,
         bids: aggregatedBids,
         asks: aggregatedAsks,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
       });
+    });
 
-      // Broadcast to specific asset room (not global)
-      // Only clients subscribed to this asset will receive updates
-      this.io.to(`asset:${asset.id}`).emit('orderbook_update', {
+    // STEP 1B: Emit all order book updates AFTER the loop (read from store)
+    const allOrderBooks = OrderBookStore.getAllOrderBooks();
+
+    allOrderBooks.forEach((orderBook) => {
+      this.io.to(`asset:${orderBook.assetId}`).emit('orderbook_update', {
         event: 'orderbook_update',
         data: {
-          assetId: asset.id,
-          currentPrice,
-          spread,
-          bestBid,
-          bestAsk,
-          bids: aggregatedBids.map((b) => ({
+          assetId: orderBook.assetId,
+          currentPrice: orderBook.currentPrice,
+          spread: orderBook.spread,
+          bestBid: orderBook.bestBid,
+          bestAsk: orderBook.bestAsk,
+          bids: orderBook.bids.map((b) => ({
             price: b.price,
             quantity: b.quantity,
             total: b.total,
           })),
-          asks: aggregatedAsks.map((a) => ({
+          asks: orderBook.asks.map((a) => ({
             price: a.price,
             quantity: a.quantity,
             total: a.total,
           })),
-          timestamp: new Date().toISOString(),
+          timestamp: orderBook.lastUpdated,
         },
       });
     });
+
+    console.log(`📖 Order books updated: ${allOrderBooks.length} assets`);
   }
 
   /**
