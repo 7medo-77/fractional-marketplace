@@ -135,9 +135,12 @@ class MarketDataService {
    *   - Qask is total ask quantity
    *
    * Price drift: Δp = currentPrice × I × MAX_DRIFT_PERCENT × DRIFT_SENSITIVITY
+   *
+   * STEP 3: After updating price, emit asset_price_update
    */
   private applyPriceDrift() {
     const assets = AssetStore.getAllAssets();
+    const timestamp = new Date().toISOString();
 
     assets.forEach((asset) => {
       const orders = this.ordersByAsset.get(asset.id) || [];
@@ -172,8 +175,25 @@ class MarketDataService {
       const newPrice = this.roundToTwo(asset.currentPrice + driftAmount);
 
       // Ensure price doesn't go negative or zero
-      if (newPrice > 0) {
+      if (newPrice > 0 && newPrice !== asset.currentPrice) {
+        // Update the asset price in store
         AssetStore.updateAssetPrice(asset.id, newPrice);
+
+        // STEP 3: Emit price update to BOTH rooms
+        const priceUpdatePayload = {
+          event: 'asset_price_update',
+          data: {
+            assetId: asset.id,
+            currentPrice: newPrice,
+            timestamp,
+          },
+        };
+
+        // Emit to specific asset room (for detail pages)
+        this.io.to(`asset:${asset.id}`).emit('asset_price_update', priceUpdatePayload);
+
+        // Emit to landing page room (for all assets overview)
+        this.io.to('assets:all').emit('asset_price_update', priceUpdatePayload);
       }
     });
   }
@@ -314,9 +334,9 @@ class MarketDataService {
         lastUpdated: new Date().toISOString(),
       });
 
-      // Broadcast to all connected clients
-      // Format matches agent_context.md TASK 3 exactly
-      this.io.emit('orderbook_update', {
+      // Broadcast to specific asset room (not global)
+      // Only clients subscribed to this asset will receive updates
+      this.io.to(`asset:${asset.id}`).emit('orderbook_update', {
         event: 'orderbook_update',
         data: {
           assetId: asset.id,

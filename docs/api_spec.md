@@ -50,7 +50,7 @@ Request:
 ```
 
 #### GET /api/orders/book/:assetId
-Get current order book (optional, mainly via Socket.io)
+Get current asset's order book (optional, mainly via Socket.io)
 WebSocket API
 ### Connection: ```ws://localhost:3001/ws```
 
