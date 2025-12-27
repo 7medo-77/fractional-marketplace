@@ -1,30 +1,12 @@
 /**
- * Utility functions for Asset Card
- * Following Single Responsibility Principle
+ * Asset Card utility functions
+ * Re-exports shared utilities for backwards compatibility
  */
 
-/**
- * Format number as currency
- */
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+export { formatCurrency, formatNumber } from '@/lib/format-utils';
+export { calculatePercentage } from '@/lib/chart-utils';
 
-/**
- * Format number with commas
- */
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('en-US').format(value);
-}
-
-/**
- * Calculate percentage
- */
+// Re-export calculatePercentage with alias
 export function calculatePercentage(value: number, total: number): number {
   if (total === 0) return 0;
   return (value / total) * 100;

@@ -12,13 +12,14 @@ export interface Asset {
   availableShares: number;
   currentPrice: number;
   priceHistory: Array<{ price: number; timestamp: string }>;
-  priceChange24h?: number; // Computed by backend
+  priceChange24h?: number;
 }
 
 export interface OrderBookEntry {
   price: number;
   quantity: number;
   total: number;
+  orderIds?: string[];
 }
 
 export interface OrderBook {

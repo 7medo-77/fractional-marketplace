@@ -26,20 +26,32 @@ We're building the asset detail page at `/assets/[assetId]` with:
 - Order book with horizontal split and gradient visualization
 - Depth chart with area gradients
 - Tabbed interface to switch between charts
-- Optimized WebSocket subscriptions to avoid unnecessary updates
+- Optimized socket.io subscriptions to avoid unnecessary updates
 - Performance optimizations for real-time data
 
 ## EXISTING STRUCTURE REFERENCE
-- Backend WebSocket: Updates every 500ms with order book data
+- Backend socket.io: Updates every 500ms with order book data
 - Current data format from backend (OrderBook interface):
 ```typescript
-interface OrderBook {
-  assetId: string;
-  currentPrice: number;
-  bids: Array<{ price: number; quantity: number; total: number; orderIds: string[] }>;
-  asks: Array<{ price: number; quantity: number; total: number; orderIds: string[] }>;
-  lastUpdated: string;
-}
+
+  interface OrderBookEntry {
+    price: number;
+    quantity: number;
+    total: number;
+    orderIds: string[];
+  }
+
+  interface OrderBook {
+    assetId: string;
+    currentPrice: number;          // Market price (last traded / drifted)
+    spread: number;                // Difference between best bid/ask
+    bestBid?: number;              // Highest bid price
+    bestAsk?: number;              // Lowest ask price
+    bids: OrderBookEntry[];
+    asks: OrderBookEntry[];
+    lastUpdated: string;
+  }
+
 ```
 
 ## TASK 1: Create Asset Detail Page Layout
@@ -58,7 +70,7 @@ Create a Server Component that:
 Create a tabbed interface with:
 1. Two tabs: "Price History" and "Market Depth"
 2. Each tab shows a different chart component
-3. Smart WebSocket subscription:
+3. Smart socket.io subscription:
    - "Price History" tab: Subscribe to trade executions only
    - "Market Depth" tab: Subscribe to order book updates only
 4. Unsubscribe from unused events when switching tabs
@@ -79,7 +91,7 @@ Using Recharts LineChart with:
 3. Y-axis: Price with currency formatting
 4. Grid lines and professional styling
 5. Tooltip showing price, time, and volume
-6. Mock data initially, connected to WebSocket for trade executions
+6. Mock data initially, connected to socket.io for trade executions
 
 ## TASK 4: Order Book Component with Performance Optimizations
 **Component**: `components/features/asset-detail/OrderBookTable.tsx`
@@ -249,8 +261,8 @@ Implementation:
 </AreaChart>
 ```
 
-## TASK 6: Smart WebSocket Subscription Manager
-**Hook**: `hooks/useSmartWebSocket.ts`
+## TASK 6: Smart socket.io Subscription Manager
+**Hook**: `hooks/useSmartsocket.io.ts`
 Create a hook that:
 1. Manages multiple subscription types:
    ```typescript
@@ -263,12 +275,12 @@ Create a hook that:
 
 Implementation:
 ```typescript
-export function useSmartWebSocket(assetId: string, activeTab: 'price' | 'depth') {
+export function useSmartsocket.io(assetId: string, activeTab: 'price' | 'depth') {
   const [orderBook, setOrderBook] = useState<OrderBook>();
   const [trades, setTrades] = useState<Trade[]>();
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:3001/ws`);
+    const ws = new socket.io(`ws://localhost:3001/ws`);
 
     // Subscribe based on active tab
     ws.onopen = () => {
@@ -301,7 +313,7 @@ export function useSmartWebSocket(assetId: string, activeTab: 'price' | 'depth')
 
     // Cleanup
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
+      if (ws.readyState === socket.io.OPEN) {
         ws.send(JSON.stringify({ type: 'UNSUBSCRIBE', assetId }));
         ws.close();
       }
@@ -371,7 +383,7 @@ OrderBookRow.displayName = 'OrderBookRow';
 }
 ```
 
-## TASK 8: Backend WebSocket Enhancements
+## TASK 8: Backend socket.io Enhancements
 Update `backend/src/handlers/socketEvents.ts`:
 1. Add separate events for order book vs trades
 2. Implement subscription management per client
@@ -476,23 +488,23 @@ components/features/asset-detail/
 │   ├── MobileOrderBookLadder.tsx
 │   └── OrderBookTable.types.ts
 ├── hooks/
-│   ├── useSmartWebSocket.ts
+│   ├── useSmartsocketIo.ts
 │   └── useOrderBookData.ts
 └── utils/
     └── chart-transforms.ts
 ```
 
 ### Step 2: Implement in Order
-1. Start with `useSmartWebSocket` hook
+1. Start with `useSmartsocketIo` hook
 2. Create `ChartTabs` with subscription logic
 3. Implement `PriceHistoryChart` with angular lines
 4. Build `OrderBookTable` with CSS variable optimization
 5. Add mobile responsiveness with `useIsMobile` hook
 6. Create `DepthChart` with gradient areas
-7. Connect all components to WebSocket data
+7. Connect all components to socket.io data
 
 ### Step 3: Testing Checklist
-- [ ] Tab switching properly changes WebSocket subscriptions
+- [ ] Tab switching properly changes socket.io subscriptions
 - [ ] Price chart shows angular lines (no curves)
 - [ ] Order book updates use CSS variables (check React DevTools re-renders)
 - [ ] Mobile view shows ladder layout
@@ -508,9 +520,9 @@ components/features/asset-detail/
 3. **useMemo** for data transformations
 4. **Throttled updates** via requestAnimationFrame
 5. **Virtual scrolling** for large datasets
-6. **Clean WebSocket subscriptions** on tab changes
+6. **Clean socket.io subscriptions** on tab changes
 
-### WebSocket Best Practices:
+### socket.io Best Practices:
 - Subscribe only to needed data
 - Unsubscribe immediately when not needed
 - Buffer rapid updates
@@ -520,7 +532,7 @@ components/features/asset-detail/
 
 1. User navigates to `/assets/asset_001`
 2. Server fetches initial asset data
-3. Client connects WebSocket based on active tab
+3. Client connects socket.io based on active tab
 4. Charts update smoothly without jank
 5. Switching tabs changes subscription type
 6. Mobile users see optimized ladder view
@@ -533,7 +545,7 @@ Proceed step-by-step through the tasks. After each major component:
 1. Test the functionality
 2. Verify performance (no excessive re-renders)
 3. Check mobile responsiveness
-4. Ensure WebSocket connections are managed properly
+4. Ensure socket.io connections are managed properly
 
 Start with Task 1 and provide progress updates after each task completion.
 ```
@@ -556,9 +568,9 @@ Start with Task 1 and provide progress updates after each task completion.
    Follow the clean-code.md principles and use server components where possible.
    ```
 
-3. **Implement WebSocket manager:**
+3. **Implement socket.io manager:**
    ```
-   @workspace Now create the useSmartWebSocket hook that manages subscriptions
+   @workspace Now create the useSmartsocket.io hook that manages subscriptions
    based on active tab. Make sure to implement proper cleanup and throttling.
    ```
 
@@ -579,7 +591,7 @@ Start with Task 1 and provide progress updates after each task completion.
    1. PriceHistoryChart with angular lines (type="stepAfter")
    2. DepthChart with gradient areas
 
-   Use Recharts and ensure they connect to the WebSocket data properly.
+   Use Recharts and ensure they connect to the socket.io data properly.
    ```
 
 6. **Test performance:**
@@ -587,14 +599,14 @@ Start with Task 1 and provide progress updates after each task completion.
    @workspace Let's verify our optimizations.
    Can you show me React DevTools profiler results for:
    1. Order book updates with CSS variables vs inline styles
-   2. Tab switching and WebSocket subscription changes
+   2. Tab switching and socket.io subscription changes
    3. Mobile vs desktop rendering
    ```
 
 ### **Verification Commands:**
 
 ```
-@workspace Check if our WebSocket implementation properly:
+@workspace Check if our socket.io implementation properly:
 1. Subscribes to orderbook updates when Depth tab is active
 2. Subscribes to trades when Price History tab is active
 3. Unsubscribes from unused events
@@ -630,7 +642,7 @@ Verify we're using React.memo and CSS variables instead of inline styles.
 ```
 
 ```
-@workspace WebSocket connections aren't closing properly.
+@workspace socket.io connections aren't closing properly.
 Check the cleanup function in useEffect and ensure we send UNSUBSCRIBE message.
 ```
 
