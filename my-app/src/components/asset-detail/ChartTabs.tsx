@@ -14,7 +14,7 @@ import { PriceHistoryChart } from './PriceHistoryChart';
 import { DepthChart } from './DepthChart';
 import { useSmartSocket } from '@/hooks/useSmartSocket';
 import { prepareDepthChartData } from '@/lib/chart-utils';
-import { formatCurrency } from '@/lib/format-utils';
+import { formatCurrency } from '@/lib/utils';
 
 interface ChartTabsProps {
   assetId: string;
@@ -55,7 +55,7 @@ export function ChartTabs({ assetId, initialPrice }: ChartTabsProps) {
             )}
           </div>
         </div>
-        
+
         {/* Price Summary */}
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span>

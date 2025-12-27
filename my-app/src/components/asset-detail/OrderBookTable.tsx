@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { OrderBookEntry } from '@/types';
-import { formatCurrency, formatNumber } from '@/lib/format-utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 import { calculateDepthPercentage } from '@/lib/chart-utils';
 
 interface OrderBookTableProps {
@@ -69,7 +69,7 @@ export const OrderBookTable = React.memo(function OrderBookTable({
                   />
                 )}
               </TableCell>
-              
+
               {/* Bid Price */}
               <TableCell className="p-0 text-right pr-2">
                 {row.bid && (
@@ -78,7 +78,7 @@ export const OrderBookTable = React.memo(function OrderBookTable({
                   </span>
                 )}
               </TableCell>
-              
+
               {/* Ask Price */}
               <TableCell className="p-0 pl-2">
                 {row.ask && (
@@ -87,7 +87,7 @@ export const OrderBookTable = React.memo(function OrderBookTable({
                   </span>
                 )}
               </TableCell>
-              
+
               {/* Ask Size */}
               <TableCell className="p-0">
                 {row.ask && (
@@ -150,7 +150,7 @@ const DepthCell = React.memo(function DepthCell({
         } ${isBid ? 'bg-green-500/20' : 'bg-red-500/20'}`}
         style={{ width: 'var(--order-depth)' }}
       />
-      
+
       {/* Value */}
       <span
         className={`relative z-10 font-mono text-sm ${

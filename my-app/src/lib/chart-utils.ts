@@ -1,139 +1,149 @@
 /**
- * Zustand store for Asset Detail page
- * Manages order book and price history via Socket.io
+ * Chart data transformation utilities
+ * Following Single Responsibility Principle
  */
 
-'use client';
+import type { OrderBookEntry } from '@/types';
 
-import { create } from 'zustand';
-import { Socket } from 'socket.io-client';
-import {
-  initializeSocket,
-  disconnectSocket,
-  subscribeToAsset,
-  unsubscribeFromAsset,
-} from '@/lib/socket';
-import { SERVER_EVENTS, OrderbookUpdatePayload } from '@/lib/socketEvents';
-import type { OrderBook, OrderBookEntry } from '@/types';
-import { generateMockPriceHistory, PriceHistoryPoint } from '@/lib/chart-utils';
-
-interface AssetDetailStore {
-  // Connection
-  socket: Socket | null;
-  isConnected: boolean;
-  subscribedAssetId: string | null;
-
-  // Order Book Data
-  orderBook: OrderBook | null;
-
-  // Price History
-  priceHistory: PriceHistoryPoint[];
-
-  // Actions
-  subscribeToAsset: (assetId: string, initialPrice?: number) => void;
-  unsubscribeFromAsset: () => void;
-  updateOrderBook: (data: OrderbookUpdatePayload['data']) => void;
-  addPricePoint: (price: number) => void;
+export interface DepthChartPoint {
+  price: number;
+  bidDepth: number;
+  askDepth: number;
 }
 
-export const useAssetDetailStore = create<AssetDetailStore>((set, get) => ({
-  socket: null,
-  isConnected: false,
-  subscribedAssetId: null,
-  orderBook: null,
-  priceHistory: [],
+export interface PriceHistoryPoint {
+  time: string;
+  price: number;
+  timestamp: number;
+}
 
-  subscribeToAsset: (assetId: string, initialPrice = 5000) => {
-    const { socket: existingSocket, subscribedAssetId } = get();
+/**
+ * Transform order book data for depth chart
+ * Calculates cumulative quantities for bid/ask sides
+ *
+ * @param bids - Array of bid order book entries
+ * @param asks - Array of ask order book entries
+ * @param currentPrice - Current market price
+ * @returns Array of depth chart points sorted by price
+ */
+export function prepareDepthChartData(
+  bids: OrderBookEntry[],
+  asks: OrderBookEntry[],
+  currentPrice: number
+): DepthChartPoint[] {
+  // Sort bids descending (highest first)
+  const sortedBids = [...bids].sort((a, b) => b.price - a.price);
 
-    // Unsubscribe from previous asset if different
-    if (subscribedAssetId && subscribedAssetId !== assetId) {
-      get().unsubscribeFromAsset();
-    }
+  // Sort asks ascending (lowest first)
+  const sortedAsks = [...asks].sort((a, b) => a.price - b.price);
 
-    // Initialize socket if needed
-    const socket = existingSocket || initializeSocket();
-
-    // Generate initial price history
-    const initialHistory = generateMockPriceHistory(initialPrice, 50);
-
-    socket.on('connect', () => {
-      console.log(`🔌 Asset detail connected, subscribing to ${assetId}`);
-      set({ isConnected: true });
-      subscribeToAsset(socket, assetId);
-    });
-
-    socket.on('disconnect', () => {
-      set({ isConnected: false });
-    });
-
-    // Listen for order book updates
-    socket.on(SERVER_EVENTS.ORDERBOOK_UPDATE, (payload: OrderbookUpdatePayload) => {
-      if (payload.data.assetId === assetId) {
-        get().updateOrderBook(payload.data);
-      }
-    });
-
-    // Subscribe if already connected
-    if (socket.connected) {
-      subscribeToAsset(socket, assetId);
-    }
-
-    set({
-      socket,
-      subscribedAssetId: assetId,
-      priceHistory: initialHistory,
-    });
-  },
-
-  unsubscribeFromAsset: () => {
-    const { socket, subscribedAssetId } = get();
-
-    if (socket && subscribedAssetId) {
-      unsubscribeFromAsset(socket, subscribedAssetId);
-      socket.off(SERVER_EVENTS.ORDERBOOK_UPDATE);
-    }
-
-    set({
-      subscribedAssetId: null,
-      orderBook: null,
-    });
-  },
-
-  updateOrderBook: (data) => {
-    const orderBook: OrderBook = {
-      assetId: data.assetId,
-      currentPrice: data.currentPrice,
-      spread: data.spread,
-      bestBid: data.bestBid,
-      bestAsk: data.bestAsk,
-      bids: data.bids,
-      asks: data.asks,
-      lastUpdated: data.timestamp,
+  // Calculate cumulative bid depth
+  let bidCumulative = 0;
+  const bidData: DepthChartPoint[] = sortedBids.map((bid) => {
+    bidCumulative += bid.quantity;
+    return {
+      price: bid.price,
+      bidDepth: bidCumulative,
+      askDepth: 0,
     };
+  }).reverse(); // Reverse so lower prices are first
 
-    // Add new price point to history
-    get().addPricePoint(data.currentPrice);
+  // Calculate cumulative ask depth
+  let askCumulative = 0;
+  const askData: DepthChartPoint[] = sortedAsks.map((ask) => {
+    askCumulative += ask.quantity;
+    return {
+      price: ask.price,
+      bidDepth: 0,
+      askDepth: askCumulative,
+    };
+  });
 
-    set({ orderBook });
-  },
+  // Add current price as midpoint
+  const midpoint: DepthChartPoint = {
+    price: currentPrice,
+    bidDepth: bidCumulative,
+    askDepth: 0,
+  };
 
-  addPricePoint: (price: number) => {
-    set((state) => {
-      const now = Date.now();
-      const newPoint: PriceHistoryPoint = {
-        time: new Date(now).toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        price,
-        timestamp: now,
-      };
+  // Combine and sort all price points
+  return [...bidData, midpoint, ...askData];
+}
 
-      // Keep last 100 points
-      const updatedHistory = [...state.priceHistory, newPoint].slice(-100);
+/**
+ * Calculate max quantity for depth bar scaling
+ * Used to normalize depth bars in order book visualizations
+ *
+ * @param entries - Array of order book entries
+ * @returns Maximum quantity found, or 1 if empty
+ */
+export function calculateMaxQuantity(entries: OrderBookEntry[]): number {
+  if (entries.length === 0) return 1;
+  return Math.max(...entries.map((e) => e.quantity));
+}
 
-      return { priceHistory: updatedHistory };
-    });
-  },
-}));
+/**
+ * Calculate depth percentage for visualization
+ * Converts quantity to percentage of max for width calculations
+ *
+ * @param quantity - Current order quantity
+ * @param maxQuantity - Maximum quantity in the order book
+ * @returns Percentage value capped at 100
+ */
+export function calculateDepthPercentage(quantity: number, maxQuantity: number): number {
+  if (maxQuantity === 0) return 0;
+  return Math.min((quantity / maxQuantity) * 100, 100);
+}
+
+/**
+ * Generate mock price history data for initial display
+ * Creates realistic-looking historical price data with volatility
+ *
+ * @param currentPrice - Current asset price
+ * @param points - Number of historical points to generate (default: 50)
+ * @returns Array of price history points with timestamps
+ */
+export function generateMockPriceHistory(
+  currentPrice: number,
+  points = 50
+): PriceHistoryPoint[] {
+  const now = Date.now();
+  const interval = 30000; // 30 seconds between points
+
+  let price = currentPrice * 0.98; // Start 2% lower
+  const volatility = 0.002; // 0.2% volatility per tick
+
+  return Array.from({ length: points }, (_, i) => {
+    // Random price movement with slight upward bias
+    const change = (Math.random() - 0.48) * volatility * price;
+    price = Math.max(price + change, price * 0.9);
+
+    // Trend towards current price in last 30% of data
+    if (i > points * 0.7) {
+      price = price + (currentPrice - price) * 0.1;
+    }
+
+    const timestamp = now - (points - i) * interval;
+
+    return {
+      time: new Date(timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      price: Math.round(price * 100) / 100,
+      timestamp,
+    };
+  });
+}
+
+/**
+ * Calculate percentage (utility for backwards compatibility)
+ *
+ * @param value - Current value
+ * @param total - Total value
+ * @returns Percentage (0-100)
+ */
+export function calculatePercentage(value: number, total: number): number {
+  if (total === 0) return 0;
+  return (value / total) * 100;
+}

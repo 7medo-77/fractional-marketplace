@@ -12,7 +12,7 @@ import { useSmartSocket } from '@/hooks/useSmartSocket';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { OrderBookTable } from './OrderBookTable';
 import { MobileOrderBookLadder } from './MobileOrderBookLadder';
-import { formatCurrency } from '@/lib/format-utils';
+import { formatCurrency } from '@/lib/utils';
 import { calculateMaxQuantity } from '@/lib/chart-utils';
 
 interface OrderBookPanelProps {

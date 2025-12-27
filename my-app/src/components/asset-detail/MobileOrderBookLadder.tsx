@@ -7,7 +7,7 @@
 
 import React from 'react';
 import type { OrderBookEntry } from '@/types';
-import { formatCurrency, formatNumber } from '@/lib/format-utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 import { calculateDepthPercentage } from '@/lib/chart-utils';
 
 interface MobileOrderBookLadderProps {
@@ -27,7 +27,7 @@ export const MobileOrderBookLadder = React.memo(function MobileOrderBookLadder({
 }: MobileOrderBookLadderProps) {
   // Sort asks descending (highest at top)
   const sortedAsks = [...asks].slice(0, 8).sort((a, b) => b.price - a.price);
-  
+
   // Sort bids descending (highest at top, near middle)
   const sortedBids = [...bids].slice(0, 8);
 

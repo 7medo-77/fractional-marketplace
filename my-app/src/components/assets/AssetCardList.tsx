@@ -13,6 +13,7 @@ import type { Asset } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
+import Link from 'next/link';
 
 interface AssetCardListProps {
   initialAssets: Asset[];
@@ -103,7 +104,7 @@ export function AssetCardList({ initialAssets }: AssetCardListProps) {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredAssets.map((asset) => (
-            <AssetCard key={asset.id} asset={asset} />
+            <Link key={asset.id} href={`/assets/${asset.id}`}><AssetCard asset={asset} /></Link>
           ))}
         </div>
       )}

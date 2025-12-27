@@ -17,7 +17,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import type { PriceHistoryPoint } from '@/lib/chart-utils';
-import { formatCurrency } from '@/lib/format-utils';
+import { formatCurrency } from '@/lib/utils';
 
 interface PriceHistoryChartProps {
   data: PriceHistoryPoint[];
@@ -59,7 +59,7 @@ export const PriceHistoryChart = React.memo(function PriceHistoryChart({
         margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
       >
         <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-        
+
         <XAxis
           dataKey="time"
           tick={{ fontSize: 10 }}
@@ -67,7 +67,7 @@ export const PriceHistoryChart = React.memo(function PriceHistoryChart({
           axisLine={false}
           interval="preserveStartEnd"
         />
-        
+
         <YAxis
           domain={[minPrice, maxPrice]}
           tick={{ fontSize: 10 }}

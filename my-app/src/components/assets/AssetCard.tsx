@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAssetPrice } from '@/hooks/useSocket';
 import type { AssetCardProps } from './AssetCard.types';
-import { formatCurrency, formatNumber } from './AssetCard.utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 
 export function AssetCard({ asset }: AssetCardProps) {
   // Get live price from WebSocket or use initial price

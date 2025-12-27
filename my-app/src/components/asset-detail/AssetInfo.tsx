@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useAssetPrice } from '@/hooks/useSocket';
 import type { Asset } from '@/types';
-import { formatCurrency, formatNumber, formatPercentage } from '@/lib/format-utils';
+import { formatCurrency, formatNumber, formatPercentage } from '@/lib/utils';
 
 interface AssetInfoProps {
   asset: Asset;
@@ -20,7 +20,7 @@ interface AssetInfoProps {
 export function AssetInfo({ asset }: AssetInfoProps) {
   // Get live price from socket
   const currentPrice = useAssetPrice(asset.id, asset.currentPrice);
-  
+
   // Calculate price change
   const priceChange = currentPrice - asset.currentPrice;
   const priceChangePercent = (priceChange / asset.currentPrice) * 100;

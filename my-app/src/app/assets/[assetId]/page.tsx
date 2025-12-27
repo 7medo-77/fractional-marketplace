@@ -39,14 +39,14 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Charts Section (2/3 width on desktop) */}
         <div className="lg:col-span-2">
-          <Suspense fallback={<AssetDetailSkeleton />}>
+          <Suspense fallback={<AssetDetailSkeleton.ChartArea />}>
             <ChartTabs assetId={assetId} initialPrice={asset.currentPrice} />
           </Suspense>
         </div>
 
         {/* Order Book Section (1/3 width on desktop) */}
         <div className="lg:col-span-1">
-          <Suspense fallback={<AssetDetailSkeleton />}>
+          <Suspense fallback={<AssetDetailSkeleton.OrderBook />}>
             <OrderBookPanel assetId={assetId} initialPrice={asset.currentPrice} />
           </Suspense>
         </div>

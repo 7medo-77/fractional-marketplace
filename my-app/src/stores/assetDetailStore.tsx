@@ -25,7 +25,7 @@ interface AssetDetailStore {
 
   // Order Book Data
   orderBook: OrderBook | null;
-  
+
   // Price History
   priceHistory: PriceHistoryPoint[];
 
@@ -88,7 +88,7 @@ export const useAssetDetailStore = create<AssetDetailStore>((set, get) => ({
 
   unsubscribeFromAsset: () => {
     const { socket, subscribedAssetId } = get();
-    
+
     if (socket && subscribedAssetId) {
       unsubscribeFromAsset(socket, subscribedAssetId);
       socket.off(SERVER_EVENTS.ORDERBOOK_UPDATE);

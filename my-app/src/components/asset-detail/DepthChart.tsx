@@ -17,7 +17,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import type { DepthChartPoint } from '@/lib/chart-utils';
-import { formatCurrency, formatNumber } from '@/lib/format-utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 
 interface DepthChartProps {
   data: DepthChartPoint[];
@@ -48,7 +48,7 @@ export const DepthChart = React.memo(function DepthChart({
             <stop offset="5%" stopColor="var(--bid-color)" stopOpacity={0.8} />
             <stop offset="95%" stopColor="var(--bid-color)" stopOpacity={0.1} />
           </linearGradient>
-          
+
           {/* Ask gradient (red) */}
           <linearGradient id="askGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="var(--ask-color)" stopOpacity={0.8} />
