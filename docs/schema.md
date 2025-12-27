@@ -39,6 +39,10 @@ interface Order {
 
 interface OrderBook {
   assetId: string;
+  currentPrice: number;          // Market price (last traded)
+  spread: number;                // Optional: difference between best bid/ask
+  bestBid?: number;              // Optional: highest bid price
+  bestAsk?: number;              // Optional: lowest ask price
   bids: Array<{
     price: number;
     quantity: number;

@@ -8,64 +8,43 @@
 - [API Specification](./api-spec.md)
 - [Data Schema](./schema.md)
 
-## Current Task: [ALWAYS UPDATE THIS SECTION]
-Create a mock data generator for our fractional marketplace. Here are the SPECIFIC requirements:
-
-## CONTEXT:
-- Each asset has its own separate order book
-- We only generate LIMIT orders for the order book (market orders execute immediately)
-- Update every 500ms
+## Current Task:
+Update the fractional marketplace schema and implement the mock data generator with price drift:
 
 ## REQUIREMENTS:
 
-1. **Input Parameters**:
-   - `assetId: string`
-   - `currentPrice: number` (e.g., 5000 for $5,000/share)
-   - `existingOrders: { bids: Order[], asks: Order[] }` (to modify, not replace)
 
-2. **Bid Generation (BUY limit orders)**:
-   - Price range: currentPrice × (0.85 to 0.95) [5-15% below current]
-   - Quantity: 1-50 shares (random integer)
-   - Order type: Always "limit"
-   - Action: Randomly add new bids OR remove existing bids (70% add, 30% remove)
+## TASK 1: Update Schema
+1. Add `currentPrice: number` to OrderBook interface
+2. Consider adding `spread: number` (bestAsk - bestBid) for convenience
+3. add the following attributes and include calculations for them (in MarketDataService) to OrderBook :
+    ``` typescript
+    currentPrice: number;          // Market price (last traded)
+    spread: number;                // Optional: difference between best bid/ask
+    bestBid?: number;              // Optional: highest bid price
+    bestAsk?: number;              // Optional: lowest ask price
+    ```
 
-3. **Ask Generation (SELL limit orders)**:
-   - Price range: currentPrice × (1.05 to 1.15) [5-15% above current]
-   - Quantity: 1-50 shares (random integer)
-   - Order type: Always "limit"
-   - Action: Randomly add new asks OR remove existing asks (70% add, 30% remove)
+## TASK 2: Implement Price Drift in Mock Generator
+- Price is initially set from the Asset's currentPrice (upon initialization)
+- Apply a small Price drift Δp is proportional to I in the following equation:
+  I =  Qbid − Qask / Qbid + Qask
+- The mock generator funtion inside MarketDataService should also update the current price of the Asset using updateAssetPrice function (which also stores the price history).
+- Price drift also means that new bids/asks will reference the currentPrice attribute
+- since the front end will use the orderbook data to construct a depth chart per asset, Make sure the client does not do any heavy computation. All heavy computation necessary to construct both an order book and a depth chart should be done on the backend
 
-4. **Order Book Structure**:
-   - Bids sorted HIGHEST to LOWEST price
-   - Asks sorted LOWEST to HIGHEST price
-   - Each price level aggregates all orders at that price
+### TASK 3: Update WebSocket Message Format
+```json
 
-5. **Calculate Totals CORRECTLY**:
-   Use this EXACT formula for each price level:
-   TotalCost = ∑(Price_i × Quantity_i) for i=0 to n
-
-  At each price level: Total = Price × (Sum of all quantities at that price)
-
-6. **Output Format**:
-```typescript
 {
-assetId: string,
-bids: Array<{
- price: number,      // e.g., 4750.50
- quantity: number,   // total shares at this price
- total: number       // price × quantity (formatted to 2 decimals)
-}>,
-asks: Array<{
- price: number,
- quantity: number,
- total: number
-}>,
-timestamp: string
+  "event": "orderbook_update",
+  "data": {
+    "assetId": "asset_001",
+    "currentPrice": 4850.75,  // REQUIRED for depth chart
+    "spread": 50.25,          // Optional: bestAsk - bestBid
+    "bids": [...],
+    "asks": [...],
+    "timestamp": "..."
+  }
 }
 ```
-
-## Key Constraints
-- Update order book every 500ms with mock data
-- Support limit and market orders
-- Use in-memory storage for mock
-- TypeScript strict mode

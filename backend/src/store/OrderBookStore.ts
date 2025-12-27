@@ -7,6 +7,10 @@ class OrderBookStore {
     if (!this.orderBooks.has(assetId)) {
       this.orderBooks.set(assetId, {
         assetId,
+        currentPrice: 0,
+        spread: 0,
+        bestBid: undefined,
+        bestAsk: undefined,
         bids: [],
         asks: [],
         lastUpdated: new Date().toISOString(),

@@ -28,6 +28,12 @@ router.get('/assets/:id', (req: Request, res: Response) => {
   });
 });
 
+// GET /api/v1/assets (landing page list)
+router.get('/assets', (_req: Request, res: Response) => {
+  const assets = AssetStore.getAllAssets();
+  res.json(assets);
+});
+
 // POST /api/v1/orders/limit
 router.post('/orders/limit', async (req: Request, res: Response) => {
   const { assetId, type, quantity, price, userId } = req.body;

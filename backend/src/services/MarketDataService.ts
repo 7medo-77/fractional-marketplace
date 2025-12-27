@@ -2,7 +2,6 @@ import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import AssetStore from '../store/AssetStore';
 import OrderBookStore from '../store/OrderBookStore';
-import { Order } from '../models/Order';
 import { OrderBookEntry } from '../models/OrderBook';
 
 interface InternalOrder {
@@ -13,6 +12,16 @@ interface InternalOrder {
   quantity: number;
   createdAt: string;
 }
+
+/**
+ * Configuration for price drift behavior
+ */
+const DRIFT_CONFIG = {
+  /** Maximum price change per tick as a percentage (0.5% = 0.005) */
+  MAX_DRIFT_PERCENT: 0.005,
+  /** Smoothing factor to prevent wild swings (0-1, lower = smoother) */
+  DRIFT_SENSITIVITY: 0.3,
+};
 
 class MarketDataService {
   private io: Server;
@@ -45,6 +54,7 @@ class MarketDataService {
 
     this.interval = setInterval(() => {
       this.generateMockOrders();
+      this.applyPriceDrift();
       this.rebuildAndBroadcastOrderBooks();
     }, 500);
 
@@ -111,6 +121,59 @@ class MarketDataService {
             this.removeRandomAsk(asset.id);
           }
         }
+      }
+    });
+  }
+
+  /**
+   * Apply price drift based on order book imbalance
+   *
+   * Formula: I = (Qbid - Qask) / (Qbid + Qask)
+   * Where:
+   *   - I is the imbalance ratio (-1 to +1)
+   *   - Qbid is total bid quantity
+   *   - Qask is total ask quantity
+   *
+   * Price drift: Δp = currentPrice × I × MAX_DRIFT_PERCENT × DRIFT_SENSITIVITY
+   */
+  private applyPriceDrift() {
+    const assets = AssetStore.getAllAssets();
+
+    assets.forEach((asset) => {
+      const orders = this.ordersByAsset.get(asset.id) || [];
+
+      // Calculate total quantities
+      const totalBidQuantity = orders
+        .filter((o) => o.type === 'bid')
+        .reduce((sum, o) => sum + o.quantity, 0);
+
+      const totalAskQuantity = orders
+        .filter((o) => o.type === 'ask')
+        .reduce((sum, o) => sum + o.quantity, 0);
+
+      const totalQuantity = totalBidQuantity + totalAskQuantity;
+
+      // Avoid division by zero
+      if (totalQuantity === 0) return;
+
+      // Calculate imbalance: I = (Qbid - Qask) / (Qbid + Qask)
+      // Range: -1 (all asks) to +1 (all bids)
+      const imbalance = (totalBidQuantity - totalAskQuantity) / totalQuantity;
+
+      // Calculate price drift
+      // Positive imbalance (more bids) → price goes UP
+      // Negative imbalance (more asks) → price goes DOWN
+      const driftAmount =
+        asset.currentPrice *
+        imbalance *
+        DRIFT_CONFIG.MAX_DRIFT_PERCENT *
+        DRIFT_CONFIG.DRIFT_SENSITIVITY;
+
+      const newPrice = this.roundToTwo(asset.currentPrice + driftAmount);
+
+      // Ensure price doesn't go negative or zero
+      if (newPrice > 0) {
+        AssetStore.updateAssetPrice(asset.id, newPrice);
       }
     });
   }
@@ -199,6 +262,12 @@ class MarketDataService {
 
   /**
    * Rebuild order books from raw orders and broadcast via Socket.io
+   *
+   * Computes all data needed for depth chart on backend:
+   * - Aggregated price levels with quantities and totals
+   * - Best bid/ask prices
+   * - Spread calculation
+   * - Current (drifted) price
    */
   private rebuildAndBroadcastOrderBooks() {
     const assets = AssetStore.getAllAssets();
@@ -220,20 +289,41 @@ class MarketDataService {
       // Sort asks: LOWEST to HIGHEST price
       aggregatedAsks.sort((a, b) => a.price - b.price);
 
-      // Update the order book store
+      // Calculate best bid/ask and spread
+      const bestBid = aggregatedBids.length > 0 ? aggregatedBids[0].price : undefined;
+      const bestAsk = aggregatedAsks.length > 0 ? aggregatedAsks[0].price : undefined;
+
+      // Spread = bestAsk - bestBid (only if both exist)
+      const spread =
+        bestBid !== undefined && bestAsk !== undefined
+          ? this.roundToTwo(bestAsk - bestBid)
+          : 0;
+
+      // Get current price from asset (includes drift)
+      const currentPrice = asset.currentPrice;
+
+      // Update the order book store with all computed fields
       OrderBookStore.updateOrderBook(asset.id, {
         assetId: asset.id,
+        currentPrice,
+        spread,
+        bestBid,
+        bestAsk,
         bids: aggregatedBids,
         asks: aggregatedAsks,
         lastUpdated: new Date().toISOString(),
       });
 
       // Broadcast to all connected clients
-      // Format matches api_spec.md exactly
+      // Format matches agent_context.md TASK 3 exactly
       this.io.emit('orderbook_update', {
         event: 'orderbook_update',
         data: {
           assetId: asset.id,
+          currentPrice,
+          spread,
+          bestBid,
+          bestAsk,
           bids: aggregatedBids.map((b) => ({
             price: b.price,
             quantity: b.quantity,
