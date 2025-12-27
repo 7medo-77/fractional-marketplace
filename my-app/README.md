@@ -48,3 +48,92 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# API Layer Usage Guide
+
+## Overview
+The API layer provides type-safe functions for communicating with the backend.
+
+## Server Components vs Client Components
+
+### Server Components (Recommended)
+Use these functions in Server Components for better performance and SEO:
+
+```typescript
+import { getAssets, getAssetById, getOrderBook } from '@/lib/api';
+
+// These use ISR (revalidate: 60 seconds)
+const assets = await getAssets();
+const asset = await getAssetById('asset_001');
+const orderBook = await getOrderBook('asset_001');
+```
+
+### Client Components
+Use these when you need fresh data on the client side:
+
+```typescript
+import {
+  getAssetsClient,
+  getAssetByIdClient,
+  placeLimitOrder,
+  placeMarketOrder
+} from '@/lib/api';
+
+// Always fetch fresh data (cache: 'no-store')
+const assets = await getAssetsClient();
+
+// Place orders (client-only operations)
+const order = await placeLimitOrder({
+  assetId: 'asset_001',
+  type: 'buy',
+  quantity: 10,
+  price: 4500,
+  userId: 'user_123'
+});
+```
+
+## Error Handling
+
+All API functions throw `ApiError` with proper typing:
+
+```typescript
+import { ApiError } from '@/types';
+
+try {
+  const assets = await getAssets();
+} catch (error) {
+  if (error instanceof ApiError) {
+    console.error(`API Error [${error.statusCode}]:`, error.message);
+    console.error('Endpoint:', error.endpoint);
+  }
+}
+```
+
+## Environment Variables
+
+Required in `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+NEXT_PUBLIC_WS_URL=ws://localhost:3001
+```
+
+## Type Safety
+
+All functions have full TypeScript support:
+
+- Request parameters are validated at compile time
+- Response types match backend models
+- No `any` types used
+
+## Real-time Updates
+
+For real-time data (order books, prices), use WebSocket instead of polling:
+
+```typescript
+// Use REST API for initial data
+const initialOrderBook = await getOrderBook('asset_001');
+
+// Then subscribe to WebSocket for updates
+// (See WebSocket documentation)
+```
