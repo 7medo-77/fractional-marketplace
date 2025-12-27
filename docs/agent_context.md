@@ -9,7 +9,7 @@
 - [Data Schema](./schema.md)
 
 ## Current Task: [ALWAYS UPDATE THIS SECTION]
-[Describe what you're working on right now]
+Initialize the back end express server by following architecture.md file,
 
 ## Tech Stack
 - Backend: Express.js + TypeScript

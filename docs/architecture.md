@@ -32,8 +32,11 @@ Two-tier architecture with Next.js frontend and Express.js backend.
 │   ├── src/app/ (Pages)
 │   ├── src/components/ (UI/TradeForm/OrderBook)
 │   └── src/hooks/ (useWebSocket)
-├── shared/
 └── backend/src/
+    ├─ controllers/
+    │  └── OrderController.ts
+    ├─ handlers/
+    │  └── WebSocketHandler.ts
     ├─ services/
     │  ├── MarketDataService.ts # Mock generator for ALL assets
     │  └── OrderService.ts # Order execution
