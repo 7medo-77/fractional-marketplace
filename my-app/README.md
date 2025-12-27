@@ -1,3 +1,17 @@
+My-app workspace setup (Task 01)
+
+Run these commands in `my-app` to install recommended dependencies and start development:
+
+```bash
+npm install
+npm install recharts date-fns clsx tailwind-merge --save
+npm install -D @types/recharts
+npm run dev
+```
+
+Notes:
+- Tailwind is configured via `tailwind.config.cjs` and global styles in `src/app/globals.css`.
+- Scaffolded basic UI components are in `src/components/ui`.
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

@@ -1,6 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import AssetStore from '../store/AssetStore';
 import OrderBookStore from '../store/OrderBookStore';
+import OrderService from '../services/OrderService';
+import { CLIENT_EVENTS, SERVER_EVENTS, ROOMS } from './socketEvents';
 
 class WebSocketHandler {
   private io: Server;
@@ -13,29 +15,38 @@ class WebSocketHandler {
     this.io.on('connection', (socket: Socket) => {
       console.log(`✅ Client connected: ${socket.id}`);
 
-      // ===== EXISTING ENDPOINTS =====
-      socket.on('subscribe_asset', (assetId: string) => {
+      // ===== ROOM SUBSCRIPTIONS =====
+      socket.on(CLIENT_EVENTS.SUBSCRIBE_ASSET, (assetId: string) => {
         if (!assetId || typeof assetId !== 'string') {
           console.warn(`⚠️  Invalid assetId from ${socket.id}`);
           return;
         }
-        socket.join(`asset:${assetId}`);
+        socket.join(ROOMS.asset(assetId));
         console.log(`📌 Client ${socket.id} subscribed to asset ${assetId}`);
       });
 
-      socket.on('unsubscribe_asset', (assetId: string) => {
+      socket.on(CLIENT_EVENTS.UNSUBSCRIBE_ASSET, (assetId: string) => {
         if (!assetId || typeof assetId !== 'string') {
           return;
         }
-        socket.leave(`asset:${assetId}`);
+        socket.leave(ROOMS.asset(assetId));
         console.log(`📍 Client ${socket.id} unsubscribed from asset ${assetId}`);
       });
 
-      // ===== NEW ENDPOINTS (Step 2A, 2B, 2C) =====
+      socket.on(CLIENT_EVENTS.SUBSCRIBE_ALL_ASSETS, () => {
+        socket.join(ROOMS.allAssets);
+        console.log(`🌐 Client ${socket.id} subscribed to all assets`);
+      });
 
-      // 2A) get_asset_price - Request/Response pattern
+      socket.on(CLIENT_EVENTS.UNSUBSCRIBE_ALL_ASSETS, () => {
+        socket.leave(ROOMS.allAssets);
+        console.log(`🌐 Client ${socket.id} unsubscribed from all assets`);
+      });
+
+      // ===== REQUEST/RESPONSE ENDPOINTS =====
+
       socket.on(
-        'get_asset_price',
+        CLIENT_EVENTS.GET_ASSET_PRICE,
         (assetId: string, callback: (response: any) => void) => {
           if (!assetId || typeof assetId !== 'string') {
             return callback({ error: 'Invalid assetId' });
@@ -54,9 +65,8 @@ class WebSocketHandler {
         }
       );
 
-      // 2B) get_orderbook - Request/Response pattern
       socket.on(
-        'get_orderbook',
+        CLIENT_EVENTS.GET_ORDERBOOK,
         (assetId: string, callback: (response: any) => void) => {
           if (!assetId || typeof assetId !== 'string') {
             return callback({ error: 'Invalid assetId' });
@@ -67,17 +77,141 @@ class WebSocketHandler {
         }
       );
 
-      // 2C) subscribe_all_assets - Join landing page room
-      socket.on('subscribe_all_assets', () => {
-        socket.join('assets:all');
-        console.log(`🌐 Client ${socket.id} subscribed to all assets`);
-      });
+      // ===== ORDER PLACEMENT (POST-like) =====
 
-      // 2C) unsubscribe_all_assets - Leave landing page room
-      socket.on('unsubscribe_all_assets', () => {
-        socket.leave('assets:all');
-        console.log(`🌐 Client ${socket.id} unsubscribed from all assets`);
-      });
+      socket.on(
+        CLIENT_EVENTS.PLACE_LIMIT_ORDER,
+        async (
+          params: {
+            assetId: string;
+            type: 'buy' | 'sell';
+            quantity: number;
+            price: number;
+            userId: string;
+          },
+          callback: (response: any) => void
+        ) => {
+          // Validation
+          if (!params.assetId || !params.type || !params.quantity || !params.price || !params.userId) {
+            return callback({ ok: false, error: 'Missing required fields' });
+          }
+
+          if (params.quantity <= 0) {
+            return callback({ ok: false, error: 'Quantity must be positive' });
+          }
+
+          if (params.price <= 0) {
+            return callback({ ok: false, error: 'Price must be positive' });
+          }
+
+          if (!['buy', 'sell'].includes(params.type)) {
+            return callback({ ok: false, error: 'Type must be buy or sell' });
+          }
+
+          const asset = AssetStore.getAsset(params.assetId);
+          if (!asset) {
+            return callback({ ok: false, error: 'Asset not found' });
+          }
+
+          try {
+            const order = await OrderService.placeLimitOrder({
+              assetId: params.assetId,
+              type: params.type,
+              quantity: params.quantity,
+              price: params.price,
+              userId: params.userId,
+            });
+
+            // Ack response
+            callback({ ok: true, order });
+
+            // Emit order_confirmed to the requesting socket
+            socket.emit(SERVER_EVENTS.ORDER_CONFIRMED, {
+              event: SERVER_EVENTS.ORDER_CONFIRMED,
+              data: {
+                orderId: order.id,
+                assetId: order.assetId,
+                type: order.type,
+                orderType: order.orderType,
+                quantity: order.quantity,
+                price: order.price,
+                status: order.status,
+                timestamp: order.createdAt,
+              },
+            });
+
+            console.log(`✅ Limit order placed: ${order.id} (${params.type} ${params.quantity} @ ${params.price})`);
+          } catch (error) {
+            callback({ ok: false, error: (error as Error).message });
+          }
+        }
+      );
+
+      socket.on(
+        CLIENT_EVENTS.PLACE_MARKET_ORDER,
+        async (
+          params: {
+            assetId: string;
+            type: 'buy' | 'sell';
+            quantity: number;
+            userId: string;
+          },
+          callback: (response: any) => void
+        ) => {
+          // Validation
+          if (!params.assetId || !params.type || !params.quantity || !params.userId) {
+            return callback({ ok: false, error: 'Missing required fields' });
+          }
+
+          if (params.quantity <= 0) {
+            return callback({ ok: false, error: 'Quantity must be positive' });
+          }
+
+          if (!['buy', 'sell'].includes(params.type)) {
+            return callback({ ok: false, error: 'Type must be buy or sell' });
+          }
+
+          const asset = AssetStore.getAsset(params.assetId);
+          if (!asset) {
+            return callback({ ok: false, error: 'Asset not found' });
+          }
+
+          try {
+            const result = await OrderService.placeMarketOrder({
+              assetId: params.assetId,
+              type: params.type,
+              quantity: params.quantity,
+              userId: params.userId,
+            });
+
+            // Ack response
+            callback({
+              ok: true,
+              order: result.order,
+              totalCost: result.totalCost,
+            });
+
+            // Emit order_confirmed
+            socket.emit(SERVER_EVENTS.ORDER_CONFIRMED, {
+              event: SERVER_EVENTS.ORDER_CONFIRMED,
+              data: {
+                orderId: result.order.id,
+                assetId: result.order.assetId,
+                type: result.order.type,
+                orderType: result.order.orderType,
+                quantity: result.order.quantity,
+                status: result.order.status,
+                totalCost: result.totalCost,
+                timestamp: result.order.createdAt,
+              },
+            });
+
+            console.log(`✅ Market order executed: ${result.order.id} (${params.type} ${params.quantity})`);
+          } catch (error) {
+            callback({ ok: false, error: (error as Error).message });
+          }
+        }
+      );
 
       socket.on('disconnect', () => {
         console.log(`❌ Client disconnected: ${socket.id}`);
@@ -86,11 +220,11 @@ class WebSocketHandler {
   }
 
   emitToAsset(assetId: string, event: string, data: any) {
-    this.io.to(`asset:${assetId}`).emit(event, data);
+    this.io.to(ROOMS.asset(assetId)).emit(event, data);
   }
 
   emitToAllAssets(event: string, data: any) {
-    this.io.to('assets:all').emit(event, data);
+    this.io.to(ROOMS.allAssets).emit(event, data);
   }
 }
 
