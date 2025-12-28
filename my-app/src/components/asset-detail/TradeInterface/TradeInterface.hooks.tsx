@@ -115,39 +115,3 @@ export function usePlaceOrder(assetId: string, isConnected: boolean) {
 
   return { placeOrder };
 }
-
-/**
- * Hook for listening to order events
- */
-export function useOrderEvents(userId: string | null) {
-  useEffect(() => {
-    if (!userId) return;
-
-    const socket = getSocket();
-    if (!socket) return;
-
-    const handleOrderConfirmed = (payload: OrderConfirmedPayload) => {
-      // Only show toast if it's for this user and we haven't already shown via ACK
-      if (payload.data.userId === userId) {
-        console.log('📋 Order confirmed:', payload.data.orderId);
-      }
-    };
-
-    const handleOrderFilled = (payload: OrderFilledPayload) => {
-      if (payload.data.userId === userId) {
-        toast.success('🎉 Limit order filled!', {
-          description: `${payload.data.type === 'bid' ? 'Buy' : 'Sell'} ${payload.data.quantity} @ $${payload.data.price.toFixed(2)}`,
-          duration: 5000,
-        });
-      }
-    };
-
-    socket.on(SERVER_EVENTS.ORDER_CONFIRMED, handleOrderConfirmed);
-    socket.on(SERVER_EVENTS.ORDER_FILLED, handleOrderFilled);
-
-    return () => {
-      socket.off(SERVER_EVENTS.ORDER_CONFIRMED, handleOrderConfirmed);
-      socket.off(SERVER_EVENTS.ORDER_FILLED, handleOrderFilled);
-    };
-  }, [userId]);
-}

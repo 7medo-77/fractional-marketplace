@@ -71,7 +71,7 @@ export function OrderHistoryTable({ orders }: OrderHistoryTableProps) {
                     </span>
                   </TableCell>
                   <TableCell className="font-mono text-xs">
-                    {order.assetId.slice(0, 12)}...
+                    {order.assetId.slice(0, 12)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {order.quantity}

@@ -32,7 +32,7 @@ export function SocketNotificationsBridge() {
     for (const n of notifications) {
       if (n.kind === 'confirmed') {
         toast.success('Order confirmed', {
-          description: `Order ${n.orderId.slice(0, 8)}...`,
+          description: `Order ${n.orderId.slice(0, 8)}`,
         });
       } else {
         toast.success('Limit order filled', {

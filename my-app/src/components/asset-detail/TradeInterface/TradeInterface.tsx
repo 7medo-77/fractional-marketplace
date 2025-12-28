@@ -52,9 +52,6 @@ export function TradeInterface({
     }
   }, []);
 
-  // Listen for order fill events
-  // useOrderEvents(userId);
-
   // Validation
   const validation = validateTradeForm(form, isConnected);
   const estimatedTotal = calculateEstimatedTotal(form, currentPrice, bestBid, bestAsk);
