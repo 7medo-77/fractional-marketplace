@@ -28,6 +28,9 @@ import {
 import type { OrderBook } from '@/types';
 import { generateMockPriceHistory, type PriceHistoryPoint } from '@/lib/utils/chart-utils';
 
+const EMPTY_PRICE_HISTORY: PriceHistoryPoint[] = [];
+if (process.env.NODE_ENV === 'development') Object.freeze(EMPTY_PRICE_HISTORY);
+
 type AssetId = string;
 
 interface SocketStore {
@@ -297,7 +300,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   getOrderBook: (assetId) => get().orderBooksByAssetId[assetId],
-  getPriceHistory: (assetId) => get().priceHistoryByAssetId[assetId] ?? [],
+
+  // IMPORTANT: do NOT return `?? []` (new array each time)
+  getPriceHistory: (assetId) =>
+    get().priceHistoryByAssetId[assetId] ?? EMPTY_PRICE_HISTORY,
 
   placeOrder: async (req) => {
     const s = get().connect();
@@ -332,15 +338,3 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
   },
 }));
-
-// DEV: log store changes
-if (process.env.NODE_ENV === 'development') {
-  useSocketStore.subscribe((state) => {
-    console.log('[socketStore]', {
-      ...state,
-      retainedAssets: Object.entries(state.assetSubscriberCounts)
-        .filter(([, c]) => (c ?? 0) > 0)
-        .map(([id, c]) => `${id}:${c}`),
-    });
-  });
-}

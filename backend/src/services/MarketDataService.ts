@@ -34,9 +34,8 @@ const DRIFT_CONFIG = {
  * Configuration for limit order fill simulation
  */
 const LIMIT_FILL_CONFIG = {
-  /** Probability of filling a limit order per tick (0.1% = 0.001) */
-  // FILL_PROBABILITY: 0.001,
-  FILL_PROBABILITY: 0.05,
+  /** Probability of filling a limit order per tick (0.5% = 0.005) */
+  FILL_PROBABILITY: 0.005,
   /** Maximum orders to check per tick per asset */
   MAX_ORDERS_PER_TICK: 10,
 };

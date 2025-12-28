@@ -7,6 +7,10 @@
 
 import { useEffect } from 'react';
 import { useSocketStore } from '@/stores/socketStore';
+import type { PriceHistoryPoint } from '@/lib/utils/chart-utils';
+
+const EMPTY_PRICE_HISTORY: PriceHistoryPoint[] = [];
+if (process.env.NODE_ENV === 'development') Object.freeze(EMPTY_PRICE_HISTORY);
 
 interface UseSmartSocketOptions {
   assetId: string;
@@ -18,17 +22,16 @@ export function useSmartSocket({ assetId, initialPrice }: UseSmartSocketOptions)
   const retainAsset = useSocketStore((s) => s.retainAsset);
   const releaseAsset = useSocketStore((s) => s.releaseAsset);
 
-  const orderBook = useSocketStore((s) => s.getOrderBook(assetId));
-  const priceHistory = useSocketStore((s) => s.getPriceHistory(assetId));
+  // Select raw state slices (avoid calling store methods in selectors)
+  const orderBook = useSocketStore((s) => s.orderBooksByAssetId[assetId]);
+  const priceHistory = useSocketStore(
+    (s) => s.priceHistoryByAssetId[assetId] ?? EMPTY_PRICE_HISTORY
+  );
 
   useEffect(() => {
     retainAsset(assetId, initialPrice);
-
-    return () => {
-      releaseAsset(assetId);
-    };
+    return () => releaseAsset(assetId);
   }, [assetId, initialPrice, retainAsset, releaseAsset]);
-  console.log({ orderBook, priceHistory });
 
   return {
     isConnected,
