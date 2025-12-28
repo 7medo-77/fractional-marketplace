@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, User } from 'lucide-react';
+import { User } from 'lucide-react';
 
 export function Header() {
   const [currentTime, setCurrentTime] = useState<string>('');

@@ -3,7 +3,7 @@
  */
 
 import type { Order } from '@/types';
-import type { OrderStatusConfig, OrderStatusVariant } from '../../components/history/History.types';
+import type { OrderStatusConfig } from '../../components/history/History.types';
 
 export const ORDER_STATUS_CONFIG: Record<Order['status'], OrderStatusConfig> = {
   open: { label: 'Open', variant: 'secondary' },

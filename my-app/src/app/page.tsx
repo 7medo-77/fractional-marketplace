@@ -1,9 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -26,7 +24,7 @@ export default function Home() {
               cars and real estate
             </p>
             <div className="mt-8 flex justify-center gap-4">
-              <Button asChild size="md md:lg">
+              <Button asChild >
                 <Link href="/assets" className="px-4">
                   Browse Assets{" "}
                   <ArrowRight className="ml-2 h-4 w-4" />

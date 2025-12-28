@@ -27,8 +27,9 @@ import {
   OrderConfirmedPayload,
   OrderFilledPayload,
 } from '@/lib/socketEvents';
-import type { OrderBook } from '@/types';
+import type { OrderBook, OrderNotification, PlaceOrderAck, PlaceOrderRequest } from '@/types';
 import { generateMockPriceHistory, type PriceHistoryPoint } from '@/lib/utils/chart-utils';
+
 
 const EMPTY_PRICE_HISTORY: PriceHistoryPoint[] = [];
 if (process.env.NODE_ENV === 'development') Object.freeze(EMPTY_PRICE_HISTORY);
@@ -94,7 +95,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   userId: null,
 
-  // ✅ ADD THESE (they're used by SocketNotificationsBridge)
   notifications: [],
   clearNotifications: () => set({ notifications: [] }),
 
@@ -245,17 +245,17 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         if ((count ?? 0) > 0) unsubscribeFromAsset(s, assetId);
       }
     } finally {
-        disconnectSocket();
-        set({
-          socket: null,
-          isConnected: false,
-          listenersAttached: false,
-          assetSubscriberCounts: {},
-          orderBooksByAssetId: {},
-          priceHistoryByAssetId: {},
-        });
-      }
-    },
+      disconnectSocket();
+      set({
+        socket: null,
+        isConnected: false,
+        listenersAttached: false,
+        assetSubscriberCounts: {},
+        orderBooksByAssetId: {},
+        priceHistoryByAssetId: {},
+      });
+    }
+  },
 
   updateAssetPrice: (update) => {
     set((state) => {
@@ -281,9 +281,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       const nextHistoryByAssetId =
         prevCount === 0
           ? {
-              ...state.priceHistoryByAssetId,
-              [assetId]: generateMockPriceHistory(initialPrice, 50),
-            }
+            ...state.priceHistoryByAssetId,
+            [assetId]: generateMockPriceHistory(initialPrice, 50),
+          }
           : state.priceHistoryByAssetId;
 
       return {
@@ -347,18 +347,18 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const payload =
       req.orderType === 'market'
         ? {
-            assetId: req.assetId,
-            type: req.type,
-            quantity: req.quantity,
-            userId: req.userId,
-          }
+          assetId: req.assetId,
+          type: req.type,
+          quantity: req.quantity,
+          userId: req.userId,
+        }
         : {
-            assetId: req.assetId,
-            type: req.type,
-            quantity: req.quantity,
-            userId: req.userId,
-            price: req.price,
-          };
+          assetId: req.assetId,
+          type: req.type,
+          quantity: req.quantity,
+          userId: req.userId,
+          price: req.price,
+        };
 
     return await new Promise<PlaceOrderAck>((resolve) => {
       s.emit(eventName, payload, (ack: PlaceOrderAck) => resolve(ack));

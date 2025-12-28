@@ -15,7 +15,7 @@ export function MarketStatus() {
     // Simulate market hours: 9 AM - 4 PM EST
     const checkMarketStatus = () => {
       const now = new Date();
-      const hour = now.getHours();
+      // const hour = now.getHours();
       // Simulate always open for demo purposes
       setIsOpen(true);
       // Uncomment for real market hours:

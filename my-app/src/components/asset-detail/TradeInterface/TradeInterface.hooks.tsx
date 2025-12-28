@@ -5,14 +5,12 @@
 
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { CLIENT_EVENTS, OrderConfirmedPayload, OrderFilledPayload } from '@/lib/socketEvents';
 import { getOrCreateUserId } from '@/lib/utils/user-id';
 import { useSocketStore } from '@/stores/socketStore';
 import type { TradeFormState, OrderResult, PlaceOrderParams } from './TradeInterface.types';
 import { FORM_DEFAULTS } from './TradeInterface.constants';
-import { validateTradeForm } from '../../../lib/utils/TradeInterface-utils';
 
 /**
  * Hook for managing trade form state

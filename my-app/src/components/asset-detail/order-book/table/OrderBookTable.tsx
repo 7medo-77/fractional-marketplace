@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { OrderBookEntry } from '@/types';
-import { formatCurrency, formatNumber } from '@/lib/utils/utils';
+import { formatCurrency } from '@/lib/utils/utils';
 import { calculateDepthPercentage } from '@/lib/utils/chart-utils';
 
 interface OrderBookTableProps {

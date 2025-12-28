@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSmartSocket } from '@/hooks/useSmartSocket';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { formatCurrency } from '@/lib/utils/utils';
 import { calculateMaxQuantity } from '@/lib/utils/chart-utils';
 import { OrderBookSkeleton } from '../skeleton/OrderBookSkeleton';
 

@@ -36,7 +36,7 @@ export function SocketNotificationsBridge() {
         });
       } else {
         toast.success('Limit order filled', {
-          description: `${n.side === 'buy' ? 'Buy' : 'Sell'} ${n.quantity} @ $${n.price.toFixed(2)}`,
+          description: `${n.side === 'buy' ? 'Buy' : 'Sell'} ${n.quantity} @ $${n.price?.toFixed(2)}`,
           duration: 5000,
         });
       }

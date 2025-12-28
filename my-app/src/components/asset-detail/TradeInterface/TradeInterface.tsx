@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
-import { getOrCreateUserId, getUserId } from '@/lib/utils/user-id';
+import { getOrCreateUserId } from '@/lib/utils/user-id';
 import { formatCurrency } from '@/lib/utils/utils';
 import type { TradeInterfaceProps } from './TradeInterface.types';
 import { useTradeForm, usePlaceOrder } from './TradeInterface.hooks';
@@ -30,7 +30,7 @@ export function TradeInterface({
   bestAsk,
   isConnected,
 }: TradeInterfaceProps) {
-  const [userId, setUserId] = useState<string | null>(null);
+  const [, setUserId] = useState<string | null>(null);
 
   const {
     form,

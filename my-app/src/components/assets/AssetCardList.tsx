@@ -25,7 +25,7 @@ export function AssetCardList({ initialAssets }: AssetCardListProps) {
   const router = useRouter();
 
   // Initialize WebSocket connection
-  const { isConnected } = useSocket();
+  useSocket();
 
   // Get unique categories
   const categories = useMemo(() => {
