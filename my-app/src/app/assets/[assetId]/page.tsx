@@ -10,6 +10,7 @@ import { AssetInfo } from '@/components/asset-detail/AssetInfo';
 import { ChartTabs } from '@/components/asset-detail/ChartTabs';
 import { OrderBookPanel } from '@/components/asset-detail/OrderBookPanel';
 import { AssetDetailSkeleton } from '@/components/asset-detail/AssetDetailSkeleton';
+import { TradeInterfaceWrapper } from '@/components/asset-detail/TradeInterfaceWrapper';
 
 interface AssetDetailPageProps {
   params: Promise<{ assetId: string }>;
@@ -38,14 +39,20 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Charts Section (2/3 width on desktop) */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <Suspense fallback={<AssetDetailSkeleton.ChartArea />}>
             <ChartTabs assetId={assetId} initialPrice={asset.currentPrice} />
           </Suspense>
         </div>
 
-        {/* Order Book Section (1/3 width on desktop) */}
-        <div className="lg:col-span-1">
+        {/* Right Column: Trade Interface + Order Book */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Trade Interface */}
+          <Suspense fallback={<AssetDetailSkeleton.OrderBook />}>
+            <TradeInterfaceWrapper assetId={assetId} initialPrice={asset.currentPrice} />
+          </Suspense>
+
+          {/* Order Book */}
           <Suspense fallback={<AssetDetailSkeleton.OrderBook />}>
             <OrderBookPanel assetId={assetId} initialPrice={asset.currentPrice} />
           </Suspense>

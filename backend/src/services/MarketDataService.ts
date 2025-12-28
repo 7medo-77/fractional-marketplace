@@ -2,7 +2,14 @@ import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import AssetStore from '../store/AssetStore';
 import OrderBookStore from '../store/OrderBookStore';
+import OrderStore from '../store/OrderStore';
+import OrderService from './OrderService';
 import { OrderBookEntry } from '../models/OrderBook';
+import {
+  SERVER_EVENTS,
+  OrderFilledPayload,
+  TradeExecutedPayload,
+} from '../handlers/socketEvents';
 
 interface InternalOrder {
   id: string;
@@ -21,6 +28,16 @@ const DRIFT_CONFIG = {
   MAX_DRIFT_PERCENT: 0.005,
   /** Smoothing factor to prevent wild swings (0-1, lower = smoother) */
   DRIFT_SENSITIVITY: 0.3,
+};
+
+/**
+ * Configuration for limit order fill simulation
+ */
+const LIMIT_FILL_CONFIG = {
+  /** Probability of filling a limit order per tick (0.1% = 0.001) */
+  FILL_PROBABILITY: 0.001,
+  /** Maximum orders to check per tick per asset */
+  MAX_ORDERS_PER_TICK: 10,
 };
 
 class MarketDataService {
@@ -64,6 +81,7 @@ class MarketDataService {
 
       this.generateMockOrders();
       this.applyPriceDrift();
+      this.simulateLimitOrderFills(); // New: simulate fills
       this.rebuildAndBroadcastOrderBooks();
 
       const elapsed = Date.now() - startTime;
@@ -216,9 +234,79 @@ class MarketDataService {
         // Emit to landing page room (for all assets overview)
         this.io.to('assets:all').emit('asset_price_update', priceUpdatePayload);
       });
-
-      console.log(`💰 Price updates: ${this.priceChangesThisTick.size} assets`);
     }
+  }
+
+  /**
+   * Simulate limit order fills with 0.1% probability per tick
+   * For each asset, checks open limit orders and randomly fills them
+   */
+  private simulateLimitOrderFills() {
+    const assets = AssetStore.getAllAssets();
+    const timestamp = new Date().toISOString();
+
+    assets.forEach((asset) => {
+      // Get open limit orders for this asset
+      const openOrders = OrderStore.getOpenLimitOrdersByAsset(asset.id);
+
+      if (openOrders.length === 0) return;
+
+      // Limit how many orders we check per tick
+      const ordersToCheck = openOrders.slice(0, LIMIT_FILL_CONFIG.MAX_ORDERS_PER_TICK);
+
+      ordersToCheck.forEach((order) => {
+        // 0.1% chance to fill per tick
+        if (Math.random() < LIMIT_FILL_CONFIG.FILL_PROBABILITY) {
+          // Fill the order
+          const result = OrderService.fillLimitOrder(order.id);
+
+          if (result) {
+            const { order: filledOrder, trade } = result;
+
+            console.log(`🎯 Limit order filled by simulation: ${filledOrder.id}`);
+
+            // Emit ORDER_FILLED to user's room
+            const orderFilledPayload: OrderFilledPayload = {
+              event: 'order_filled',
+              data: {
+                orderId: filledOrder.id,
+                assetId: filledOrder.assetId,
+                userId: filledOrder.userId,
+                type: filledOrder.type,
+                orderType: 'limit',
+                quantity: filledOrder.quantity,
+                price: filledOrder.price!,
+                status: 'filled',
+                filledAt: filledOrder.filledAt!,
+                tradeId: trade.id,
+                timestamp,
+              },
+            };
+
+            this.io.to(`user:${filledOrder.userId}`).emit(SERVER_EVENTS.ORDER_FILLED, orderFilledPayload);
+
+            // Also emit to asset room for other watchers
+            this.io.to(`asset:${filledOrder.assetId}`).emit(SERVER_EVENTS.ORDER_FILLED, orderFilledPayload);
+
+            // Emit TRADE_EXECUTED
+            const tradePayload: TradeExecutedPayload = {
+              event: 'trade_executed',
+              data: {
+                tradeId: trade.id,
+                assetId: trade.assetId,
+                buyerId: trade.buyerId,
+                sellerId: trade.sellerId,
+                quantity: trade.quantity,
+                price: trade.price,
+                timestamp: trade.executedAt,
+              },
+            };
+
+            this.io.to(`asset:${trade.assetId}`).emit(SERVER_EVENTS.TRADE_EXECUTED, tradePayload);
+          }
+        }
+      });
+    });
   }
 
   /**

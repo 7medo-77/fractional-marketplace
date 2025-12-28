@@ -85,11 +85,11 @@ export function ChartTabs({ assetId, initialPrice }: ChartTabsProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="price" className="h-[300px]">
+          <TabsContent value="price" className="h-[400px]">
             <PriceHistoryChart data={priceHistory} />
           </TabsContent>
 
-          <TabsContent value="depth" className="h-[300px]">
+          <TabsContent value="depth" className="h-[400px]">
             <DepthChart data={depthChartData} currentPrice={currentPrice} />
           </TabsContent>
         </Tabs>

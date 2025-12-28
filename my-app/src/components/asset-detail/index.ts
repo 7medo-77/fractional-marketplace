@@ -10,4 +10,5 @@ export { OrderBookPanel } from './OrderBookPanel';
 export { OrderBookTable } from './OrderBookTable';
 export { MobileOrderBookLadder } from './MobileOrderBookLadder';
 export { AssetDetailSkeleton } from './AssetDetailSkeleton';
+export { TradeInterface } from './TradeInterface';
 export type * from './AssetDetail.types';

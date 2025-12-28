@@ -34,7 +34,7 @@ export const MobileOrderBookLadder = React.memo(function MobileOrderBookLadder({
   return (
     <div className="flex flex-col h-[500px] w-full bg-background font-mono text-sm overflow-hidden">
       {/* ASKS SECTION (Red) - uses flex-col-reverse */}
-      <div className="flex-1 overflow-y-auto flex flex-col-reverse border-b">
+      <div className="flex-1 overflow-y-auto flex flex-col border-b">
         {sortedAsks.map((ask) => (
           <LadderRow
             key={ask.price}
@@ -98,8 +98,8 @@ const LadderRow = React.memo(function LadderRow({
     >
       {/* Background Depth Bar */}
       <div
-        className={`absolute inset-y-0 right-0 transition-all duration-100 ${
-          isAsk ? 'bg-red-500/15' : 'bg-green-500/15'
+        className={`absolute inset-y-0 right-0 transition-all duration-100 opacity-25 ${
+          isAsk ? 'bg-ask-color' : 'bg-bid-color'
         }`}
         style={{ width: 'var(--order-depth)' }}
       />
