@@ -3,8 +3,8 @@
  * Following Single Responsibility Principle
  */
 
-import type { TradeFormState, ValidationResult, OrderSide } from './TradeInterface.types';
-import { MIN_QUANTITY, MAX_QUANTITY, MIN_PRICE, MAX_PRICE } from './TradeInterface.constants';
+import type { TradeFormState, ValidationResult, OrderSide } from '../../components/asset-detail/TradeInterface/TradeInterface.types';
+import { MIN_QUANTITY, MAX_QUANTITY, MIN_PRICE, MAX_PRICE } from '../../components/asset-detail/TradeInterface/TradeInterface.constants';
 
 /**
  * Validate trade form inputs

@@ -2,7 +2,7 @@
  * Loading state for Asset Detail Page
  */
 
-import { AssetDetailSkeleton } from '@/components/asset-detail/AssetDetailSkeleton';
+import { AssetDetailSkeleton } from '@/components/asset-detail/skeleton/AssetDetailSkeleton';
 
 export default function AssetDetailLoading() {
   return (

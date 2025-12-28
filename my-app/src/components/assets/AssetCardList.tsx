@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AssetCard } from './AssetCard';
+import { AssetCard } from './card/AssetCard';
 import { useSocket } from '@/hooks/useSocket';
 import type { Asset } from '@/types';
 import { Input } from '@/components/ui/input';

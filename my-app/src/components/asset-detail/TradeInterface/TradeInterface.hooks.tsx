@@ -9,10 +9,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { getSocket } from '@/lib/socket';
 import { CLIENT_EVENTS, SERVER_EVENTS, OrderConfirmedPayload, OrderFilledPayload } from '@/lib/socketEvents';
-import { getOrCreateUserId } from '@/lib/user-id';
+import { getOrCreateUserId } from '@/lib/utils/user-id';
 import type { TradeFormState, OrderResult, PlaceOrderParams } from './TradeInterface.types';
 import { FORM_DEFAULTS } from './TradeInterface.constants';
-import { validateTradeForm } from './TradeInterface.utils';
+import { validateTradeForm } from '../../../lib/utils/TradeInterface-utils';
 
 /**
  * Hook for managing trade form state

@@ -15,7 +15,7 @@ import {
 } from '@/lib/socket';
 import { SERVER_EVENTS, OrderbookUpdatePayload } from '@/lib/socketEvents';
 import type { OrderBook, OrderBookEntry } from '@/types';
-import { generateMockPriceHistory, PriceHistoryPoint } from '@/lib/chart-utils';
+import { generateMockPriceHistory, PriceHistoryPoint } from '@/lib/utils/chart-utils';
 
 interface AssetDetailStore {
   // Connection

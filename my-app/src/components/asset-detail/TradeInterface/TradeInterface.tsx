@@ -16,11 +16,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
-import { getOrCreateUserId, getUserId } from '@/lib/user-id';
-import { formatCurrency } from '@/lib/utils';
+import { getOrCreateUserId, getUserId } from '@/lib/utils/user-id';
+import { formatCurrency } from '@/lib/utils/utils';
 import type { TradeInterfaceProps } from './TradeInterface.types';
 import { useTradeForm, usePlaceOrder, useOrderEvents } from './TradeInterface.hooks';
-import { validateTradeForm, calculateEstimatedTotal, getSideToggleClass } from './TradeInterface.utils';
+import { validateTradeForm, calculateEstimatedTotal, getSideToggleClass } from '../../../lib/utils/TradeInterface-utils';
 import { ORDER_SIDE_LABELS, ORDER_TYPE_LABELS } from './TradeInterface.constants';
 
 export function TradeInterface({
@@ -204,11 +204,10 @@ export function TradeInterface({
           {/* Submit Button */}
           <Button
             type="submit"
-            className={`w-full ${
-              form.side === 'buy'
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-red-600 hover:bg-red-700'
-            }`}
+            className={`w-full ${form.side === 'buy'
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-red-600 hover:bg-red-700'
+              }`}
             disabled={!validation.isValid || isSubmitting || !isConnected}
           >
             {isSubmitting ? (

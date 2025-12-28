@@ -7,7 +7,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getOrCreateUserId } from '@/lib/user-id';
+import { getOrCreateUserId } from '@/lib/utils/user-id';
 
 export function UserIdInitializer() {
   useEffect(() => {

@@ -12,8 +12,8 @@ import { useSmartSocket } from '@/hooks/useSmartSocket';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { OrderBookTable } from './table/OrderBookTable';
 import { MobileOrderBookLadder } from './mobile/MobileOrderBookLadder';
-import { formatCurrency } from '@/lib/utils';
-import { calculateMaxQuantity } from '@/lib/chart-utils';
+import { formatCurrency } from '@/lib/utils/utils';
+import { calculateMaxQuantity } from '@/lib/utils/chart-utils';
 
 interface OrderBookPanelProps {
   assetId: string;

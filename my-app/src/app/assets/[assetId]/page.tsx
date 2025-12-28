@@ -6,10 +6,10 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getAssetById } from '@/lib/api';
-import { AssetInfo } from '@/components/asset-detail/AssetInfo';
+import { AssetInfo } from '@/components/asset-detail/info-header/AssetInfo';
 import { ChartTabs } from '@/components/asset-detail';
 import { OrderBookPanel } from '@/components/asset-detail/order-book/OrderBookPanel';
-import { AssetDetailSkeleton } from '@/components/asset-detail/AssetDetailSkeleton';
+import { AssetDetailSkeleton } from '@/components/asset-detail/skeleton/AssetDetailSkeleton';
 import { TradeInterfaceWrapper } from '@/components/asset-detail/TradeInterfaceWrapper';
 
 interface AssetDetailPageProps {

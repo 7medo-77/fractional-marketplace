@@ -3,5 +3,5 @@
  */
 
 export { HistoryClient } from './HistoryClient';
-export { OrderHistoryTable } from './OrderHistoryTable';
+export { OrderHistoryTable } from './table/OrderHistoryTable';
 export { useOrderHistory } from './History.hooks';

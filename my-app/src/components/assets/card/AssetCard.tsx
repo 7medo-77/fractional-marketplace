@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAssetPrice } from '@/hooks/useSocket';
 import type { AssetCardProps } from './AssetCard.types';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency, formatNumber } from '@/lib/utils/utils';
 
 export function AssetCard({ asset }: AssetCardProps) {
   // Get live price from WebSocket or use initial price
@@ -29,7 +29,7 @@ export function AssetCard({ asset }: AssetCardProps) {
   const isPriceUp = priceChange > 0;
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200">
+    <Card className="group hover:shadow-lg transition-all duration-200 h-[300px] flex flex-col justify-between">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -44,7 +44,7 @@ export function AssetCard({ asset }: AssetCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col justify-between gap-4 p-4 ">
         {/* Price Section */}
         <div className="space-y-1">
           <div className="flex items-baseline justify-between">
@@ -53,9 +53,8 @@ export function AssetCard({ asset }: AssetCardProps) {
             </span>
             {priceChange !== 0 && (
               <div
-                className={`flex items-center gap-1 text-sm font-medium ${
-                  isPriceUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                }`}
+                className={`flex items-center gap-1 text-sm font-medium ${isPriceUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}
               >
                 {isPriceUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {isPriceUp ? '+' : ''}
@@ -83,15 +82,16 @@ export function AssetCard({ asset }: AssetCardProps) {
               }}
             />
           </div>
+
+          {/* Action Button */}
+          <Button asChild className="w-full group-hover:bg-primary/90">
+            <Link href={`/assets/${asset.id}`}>
+              View Details
+              <ArrowUpRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
-        {/* Action Button */}
-        <Button asChild className="w-full group-hover:bg-primary/90">
-          <Link href={`/assets/${asset.id}`}>
-            View Details
-            <ArrowUpRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
       </CardContent>
     </Card>
   );

@@ -16,8 +16,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { PriceHistoryPoint } from '@/lib/chart-utils';
-import { formatCurrency } from '@/lib/utils';
+import type { PriceHistoryPoint } from '@/lib/utils/chart-utils';
+import { formatCurrency } from '@/lib/utils/utils';
 
 interface PriceHistoryChartProps {
   data: PriceHistoryPoint[];

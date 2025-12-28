@@ -6,8 +6,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Order } from '@/types';
-import { getUserId } from '@/lib/user-id';
-import { buildApiUrl } from '@/lib/api-utils';
+import { getUserId } from '@/lib/utils/user-id';
+import { buildApiUrl } from '@/lib/utils/api-utils';
 
 interface UseOrderHistoryReturn {
   orders: Order[];

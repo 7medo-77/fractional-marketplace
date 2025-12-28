@@ -16,8 +16,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { DepthChartPoint } from '@/lib/chart-utils';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import type { DepthChartPoint } from '@/lib/utils/chart-utils';
+import { formatCurrency, formatNumber } from '@/lib/utils/utils';
 
 interface DepthChartProps {
   data: DepthChartPoint[];

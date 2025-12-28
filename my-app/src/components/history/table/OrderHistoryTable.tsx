@@ -17,8 +17,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Order } from '@/types';
-import { formatCurrency } from '@/lib/utils';
-import { ORDER_STATUS_CONFIG, getOrderTypeLabel, formatOrderDate } from './History.utils';
+import { formatCurrency } from '@/lib/utils/utils';
+import { ORDER_STATUS_CONFIG, getOrderTypeLabel, formatOrderDate } from '../../../lib/utils/History-utils';
 
 interface OrderHistoryTableProps {
   orders: Order[];

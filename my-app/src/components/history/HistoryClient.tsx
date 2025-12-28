@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useOrderHistory } from './History.hooks';
-import { OrderHistoryTable } from './OrderHistoryTable';
+import { OrderHistoryTable } from './table/OrderHistoryTable';
 
 export function HistoryClient() {
   const { orders, isLoading, error, refetch } = useOrderHistory();

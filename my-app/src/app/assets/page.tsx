@@ -1,6 +1,6 @@
 import { getAssets } from '@/lib/api';
 import { AssetCardList } from '@/components/assets/AssetCardList';
-import { AssetPageHeader } from '@/components/assets/AssetPageHeader';
+import { AssetPageHeader } from '@/components/assets/header/AssetPageHeader';
 import { StatusBar } from '@/components/shared/status-bar/StatusBar';
 
 /**

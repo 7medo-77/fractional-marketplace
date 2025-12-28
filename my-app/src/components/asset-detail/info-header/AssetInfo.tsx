@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useAssetPrice } from '@/hooks/useSocket';
 import type { Asset } from '@/types';
-import { formatCurrency, formatNumber, formatPercentage } from '@/lib/utils';
+import { formatCurrency, formatNumber, formatPercentage } from '@/lib/utils/utils';
 
 interface AssetInfoProps {
   asset: Asset;
@@ -28,7 +28,7 @@ export function AssetInfo({ asset }: AssetInfoProps) {
 
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className="pt-6 ">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           {/* Asset Details */}
           <div className="space-y-2">
@@ -48,11 +48,10 @@ export function AssetInfo({ asset }: AssetInfoProps) {
               </span>
               {priceChange !== 0 && (
                 <div
-                  className={`flex items-center gap-1 text-sm font-medium ${
-                    isPriceUp
+                  className={`flex items-center gap-1 text-sm font-medium ${isPriceUp
                       ? 'text-green-600 dark:text-green-400'
                       : 'text-red-600 dark:text-red-400'
-                  }`}
+                    }`}
                 >
                   {isPriceUp ? (
                     <TrendingUp className="h-4 w-4" />

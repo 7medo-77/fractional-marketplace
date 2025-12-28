@@ -15,8 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { OrderBookEntry } from '@/types';
-import { formatCurrency, formatNumber } from '@/lib/utils';
-import { calculateDepthPercentage } from '@/lib/chart-utils';
+import { formatCurrency, formatNumber } from '@/lib/utils/utils';
+import { calculateDepthPercentage } from '@/lib/utils/chart-utils';
 
 interface OrderBookTableProps {
   bids: OrderBookEntry[];
@@ -152,17 +152,15 @@ const DepthCell = React.memo(function DepthCell({
     >
       {/* Depth bar using CSS variable */}
       <div
-        className={`absolute inset-y-0 top-0 h-6 opacity-25 ${
-          align === 'right' ? 'right-0' : 'left-0'
-        } ${isBid ? 'bg-bid-color ' : 'bg-ask-color '}`}
+        className={`absolute inset-y-0 top-0 h-6 opacity-25 ${align === 'right' ? 'right-0' : 'left-0'
+          } ${isBid ? 'bg-bid-color ' : 'bg-ask-color '}`}
         style={{ width: 'var(--order-depth)' }}
       />
 
       {/* Value */}
       <span
-        className={`relative z-10 font-mono text-sm ${
-          align === 'right' ? 'float-right' : 'float-left'
-        } ${isBid ? 'text-green-500' : 'text-red-500'}`}
+        className={`relative z-10 font-mono text-sm ${align === 'right' ? 'float-right' : 'float-left'
+          } ${isBid ? 'text-green-500' : 'text-red-500'}`}
       >
         {formatCurrency(displayValue)}
       </span>

@@ -7,8 +7,8 @@
 
 import React from 'react';
 import type { OrderBookEntry } from '@/types';
-import { formatCurrency, formatNumber } from '@/lib/utils';
-import { calculateDepthPercentage } from '@/lib/chart-utils';
+import { formatCurrency, formatNumber } from '@/lib/utils/utils';
+import { calculateDepthPercentage } from '@/lib/utils/chart-utils';
 
 interface MobileOrderBookLadderProps {
   bids: OrderBookEntry[];
@@ -98,9 +98,8 @@ const LadderRow = React.memo(function LadderRow({
     >
       {/* Background Depth Bar */}
       <div
-        className={`absolute inset-y-0 right-0 transition-all duration-100 opacity-25 ${
-          isAsk ? 'bg-ask-color' : 'bg-bid-color'
-        }`}
+        className={`absolute inset-y-0 right-0 transition-all duration-100 opacity-25 ${isAsk ? 'bg-ask-color' : 'bg-bid-color'
+          }`}
         style={{ width: 'var(--order-depth)' }}
       />
 

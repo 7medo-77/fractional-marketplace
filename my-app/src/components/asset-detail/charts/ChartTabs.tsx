@@ -13,8 +13,8 @@ import { TrendingUp, BarChart3 } from 'lucide-react';
 import { PriceHistoryChart } from './price-history-chart/PriceHistoryChart';
 import { DepthChart } from './depth-chart/DepthChart';
 import { useSmartSocket } from '@/hooks/useSmartSocket';
-import { prepareDepthChartData } from '@/lib/chart-utils';
-import { formatCurrency } from '@/lib/utils';
+import { prepareDepthChartData } from '@/lib/utils/chart-utils';
+import { formatCurrency } from '@/lib/utils/utils';
 
 interface ChartTabsProps {
   assetId: string;

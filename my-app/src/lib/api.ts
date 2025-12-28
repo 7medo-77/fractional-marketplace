@@ -24,7 +24,7 @@ import {
   handleApiResponse,
   serverFetchOptions,
   clientFetchOptions,
-} from '@/lib/api-utils';
+} from '@/lib/utils/api-utils';
 
 // ========================================
 // SERVER-SIDE API FUNCTIONS (for Server Components)
