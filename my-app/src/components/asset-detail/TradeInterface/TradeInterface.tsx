@@ -19,7 +19,7 @@ import { Loader2 } from 'lucide-react';
 import { getOrCreateUserId, getUserId } from '@/lib/utils/user-id';
 import { formatCurrency } from '@/lib/utils/utils';
 import type { TradeInterfaceProps } from './TradeInterface.types';
-import { useTradeForm, usePlaceOrder, useOrderEvents } from './TradeInterface.hooks';
+import { useTradeForm, usePlaceOrder } from './TradeInterface.hooks';
 import { validateTradeForm, calculateEstimatedTotal, getSideToggleClass } from '../../../lib/utils/TradeInterface-utils';
 import { ORDER_SIDE_LABELS, ORDER_TYPE_LABELS } from './TradeInterface.constants';
 

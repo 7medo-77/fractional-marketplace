@@ -5,16 +5,33 @@
 
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, BarChart3 } from 'lucide-react';
-import { PriceHistoryChart } from './price-history-chart/PriceHistoryChart';
-import { DepthChart } from './depth-chart/DepthChart';
 import { useSmartSocket } from '@/hooks/useSmartSocket';
 import { useDepthChartData } from '@/hooks/useDepthChartData';
 import { formatCurrency } from '@/lib/utils/utils';
+import { ChartSkeleton } from './skeleton/ChartSkeleton';
+
+// Dynamic imports with loading fallback
+const PriceHistoryChart = dynamic(
+  () => import('./price-history-chart/PriceHistoryChart').then((mod) => ({ default: mod.PriceHistoryChart })),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+);
+
+const DepthChart = dynamic(
+  () => import('./depth-chart/DepthChart').then((mod) => ({ default: mod.DepthChart })),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+);
 
 interface ChartTabsProps {
   assetId: string;
@@ -68,7 +85,7 @@ export function ChartTabs({ assetId, initialPrice }: ChartTabsProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="px-1 md:px-4 pt-0">
         <Tabs defaultValue="price" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="price" className="flex items-center gap-2">
@@ -82,11 +99,15 @@ export function ChartTabs({ assetId, initialPrice }: ChartTabsProps) {
           </TabsList>
 
           <TabsContent value="price" className="h-[400px]">
-            <PriceHistoryChart data={priceHistory} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <PriceHistoryChart data={priceHistory} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="depth" className="h-[400px]">
-            <DepthChart data={depthChartData} currentPrice={currentPrice} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <DepthChart data={depthChartData} currentPrice={currentPrice} />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </CardContent>

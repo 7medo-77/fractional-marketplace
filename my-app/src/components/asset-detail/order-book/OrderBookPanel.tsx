@@ -5,15 +5,32 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSmartSocket } from '@/hooks/useSmartSocket';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { OrderBookTable } from './table/OrderBookTable';
-import { MobileOrderBookLadder } from './mobile/MobileOrderBookLadder';
 import { formatCurrency } from '@/lib/utils/utils';
 import { calculateMaxQuantity } from '@/lib/utils/chart-utils';
+import { OrderBookSkeleton } from '../skeleton/OrderBookSkeleton';
+
+// Dynamic imports with loading fallback
+const OrderBookTable = dynamic(
+  () => import('./table/OrderBookTable').then((mod) => ({ default: mod.OrderBookTable })),
+  {
+    loading: () => <OrderBookSkeleton />,
+    ssr: false,
+  }
+);
+
+const MobileOrderBookLadder = dynamic(
+  () => import('./mobile/MobileOrderBookLadder').then((mod) => ({ default: mod.MobileOrderBookLadder })),
+  {
+    loading: () => <OrderBookSkeleton />,
+    ssr: false,
+  }
+);
 
 interface OrderBookPanelProps {
   assetId: string;
@@ -44,23 +61,25 @@ export function OrderBookPanel({ assetId, initialPrice }: OrderBookPanelProps) {
       </CardHeader>
 
       <CardContent className="p-0">
-        {isMobile ? (
-          <MobileOrderBookLadder
-            bids={bids}
-            asks={asks}
-            currentPrice={currentPrice}
-            spread={spread}
-            maxQuantity={maxQuantity}
-          />
-        ) : (
-          <OrderBookTable
-            bids={bids}
-            asks={asks}
-            currentPrice={currentPrice}
-            spread={spread}
-            maxQuantity={maxQuantity}
-          />
-        )}
+        <Suspense fallback={<OrderBookSkeleton />}>
+          {isMobile ? (
+            <MobileOrderBookLadder
+              bids={bids}
+              asks={asks}
+              currentPrice={currentPrice}
+              spread={spread}
+              maxQuantity={maxQuantity}
+            />
+          ) : (
+            <OrderBookTable
+              bids={bids}
+              asks={asks}
+              currentPrice={currentPrice}
+              spread={spread}
+              maxQuantity={maxQuantity}
+            />
+          )}
+        </Suspense>
       </CardContent>
     </Card>
   );
