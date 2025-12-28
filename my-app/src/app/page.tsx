@@ -12,13 +12,13 @@ import { ArrowRight, ShieldCheck, TrendingUp, Zap } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black ">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
 
         <div className="flex flex-col items-center justify-center space-y-12 py-12">
           {/* Hero Section */}
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+            <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
               Trade Fractional Assets
             </h1>
             <p className="mt-4 text-lg text-muted-foreground sm:text-xl">
@@ -26,14 +26,14 @@ export default function Home() {
               cars and real estate
             </p>
             <div className="mt-8 flex justify-center gap-4">
-              <Button asChild size="lg">
-                <Link href="/assets">
+              <Button asChild size="md md:lg">
+                <Link href="/assets" className="px-4">
                   Browse Assets{" "}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/portfolio">View Portfolio</Link>
+              <Button asChild variant="outline" >
+                <Link href="/history" className="px-4">View Portfolio</Link>
               </Button>
             </div>
           </div>

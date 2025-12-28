@@ -44,7 +44,7 @@ export function Header() {
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden items-center space-x-6 md:flex">
+        <nav className=" items-center space-x-6 md:flex">
           <Link
             href="/assets"
             className="text-sm font-medium transition-colors hover:text-primary"
@@ -78,11 +78,6 @@ export function Header() {
             <span className="sr-only">User menu</span>
           </Button>
 
-          {/* Mobile Menu */}
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Menu</span>
-          </Button>
         </div>
       </div>
     </header>

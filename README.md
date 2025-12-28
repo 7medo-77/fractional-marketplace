@@ -7,18 +7,28 @@ Monorepo for a real-time fractional asset trading demo.
 
 ---
 
-## Start the project
+## Run the project (Quickstart)
 
-### 1) Backend (API + Socket server)
+### Prerequisites
+- Node.js (use whatever version matches your local setup; `npm` is assumed)
+- Ports available:
+  - Frontend: `http://localhost:3000`
+  - Backend/API + Socket.io: `http://localhost:3001`
+
+### 1) Start the backend (API + Socket.io)
 ```sh
 cd backend
 npm install
 npm run dev
 ```
 
-By default the backend listens on **http://localhost:3001** and the Socket.io server is on the same origin.
+Backend listens on **http://localhost:3001** and the Socket.io server is on the same origin.
 
-### 2) Frontend (Next.js app)
+Backend env example: [backend/.env](backend/.env)
+- `PORT=3001`
+- `FRONTEND_URL=http://localhost:3000`
+
+### 2) Start the frontend (Next.js app)
 ```sh
 cd my-app
 npm install
@@ -27,27 +37,41 @@ npm run dev
 
 Frontend runs at **http://localhost:3000**.
 
-### Environment variables
-
-Backend: .env (example keys: `PORT`, `FRONTEND_URL`)
-
-Frontend: .env (expected keys)
+Frontend env example: [my-app/.env](my-app/.env)
 - `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `NEXT_PUBLIC_WS_URL=http://localhost:3001`
 
 ---
 
-## Frontend (my-app/) — overview
+## Frontend (my-app/) — overview (primary)
 
-### Tech stack
-- **Next.js 16** (App Router) + **React 19**
-- **TypeScript**
-- **Tailwind CSS** + **shadcn/ui**
-- **Zustand** for client state (socket + realtime state)
-- **Socket.io client** for realtime order book / prices / notifications
-- **Recharts** for charts (price history + depth)
+### What the frontend provides
+- Assets list with **real-time price updates**
+- Asset detail page with:
+  - Live charts (price history / depth)
+  - Live order book
+  - Trade interface (market / limit)
+- Global UX utilities:
+  - Toast notifications (Sonner)
+  - Stable client user identity (localStorage, 24h expiry)
 
-### Directory structure (high-level)
+### Key routes (App Router)
+- `/` — landing page
+- `/assets` — assets list (server-fetched initial data + realtime updates)
+- `/assets/[assetId]` — asset detail (charts, order book, trading)
+- `/history` — user order history
+
+### Realtime architecture (Socket.io + Zustand)
+The frontend uses a singleton socket connection + global store for connection state, subscriptions, and notifications.
+
+- Root layout mounts global bridges in: [my-app/src/app/layout.tsx](my-app/src/app/layout.tsx)
+  - `SocketNotificationsBridge` for toast notifications
+  - `UserIdInitializer` for stable user identity
+
+- Shared UI that consumes socket connection state:
+  - Footer (status UI): [my-app/src/components/shared/footer.tsx](my-app/src/components/shared/footer.tsx)
+
+### Frontend directory structure (high-level)
 ```
 my-app/
   src/
@@ -59,58 +83,33 @@ my-app/
     types.ts             # Shared TS types (frontend)
 ```
 
-### Routing (App Router)
-- layout.tsx
-  Root layout (Header/Footer/Toaster) and global bridges:
-  - `SocketNotificationsBridge` for toast notifications
-  - `UserIdInitializer` for stable user identity
+### API layer (frontend)
+The frontend isolates REST calls into a typed API layer:
+- API helpers: [my-app/src/lib/api.ts](my-app/src/lib/api.ts)
+- URL + error utilities: [my-app/src/lib/utils/api-utils.ts](my-app/src/lib/utils/api-utils.ts)
 
-- page.tsx
-  Server Component page that fetches assets via the API and renders client components for live updates.
+Example: client-side order book fetch:
+- `getOrderBookClient(assetId)` in [`getOrderBookClient`](my-app/src/lib/api.ts)
 
-- page.tsx
-  Asset detail page that fetches initial asset data server-side and mounts realtime UI (charts, order book, trade interface).
-
-### Realtime architecture (Socket.io + Zustand)
-- Socket singleton utilities live in:
-  - `initializeSocket` in socket.ts
-
-- Global socket state (connection, listeners, subscriptions, notifications) lives in:
-  - `useSocketStore` in socketStore.tsx
-
-- Asset detail pages use a ref-counted subscription hook:
-  - `useSmartSocket` in useSmartSocket.tsx
-  This retains/releases an asset subscription on mount/unmount so multiple widgets on the same page can share one subscription.
-
-### UI components
-- `src/components/ui/` — shadcn primitives (Card, Tabs, Table, Input, etc.)
-- `src/components/asset-detail/` — asset detail widgets:
-  - Charts, order book panel, trade interface wrapper, etc.
-
-### Linting / formatting
-- ESLint is configured in:
-  - eslint.config.mjs (Next.js core-web-vitals + TypeScript presets)
+### User identity (client-side)
+A stable `userId` is stored in `localStorage` and refreshed every 24h:
+- Utility: [my-app/src/lib/utils/user-id.ts](my-app/src/lib/utils/user-id.ts)
 
 ---
 
-## Backend (backend/) — overview
+## Backend (backend/) — brief
 
 - Express REST API mounted under `/api/v1`
-- Socket.io server for realtime updates (market data + order updates)
-- Market data generator runs on startup (see server.ts)
-
-Run backend checks:
-```sh
-cd backend
-npm run build
-npm test
-```
+- Socket.io server emits market/order events
+- Market data generator starts on boot:
+  - Server bootstrap: [backend/src/server.ts](backend/src/server.ts)
+  - Order logic: [backend/src/services/OrderService.ts](backend/src/services/OrderService.ts)
 
 ---
 
 ## Common scripts
 
-Frontend:
+### Frontend
 ```sh
 cd my-app
 npm run dev
@@ -120,7 +119,7 @@ npm run lint
 npm run typecheck
 ```
 
-Backend:
+### Backend
 ```sh
 cd backend
 npm run dev

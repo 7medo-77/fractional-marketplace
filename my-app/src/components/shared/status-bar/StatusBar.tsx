@@ -11,8 +11,8 @@ import { MarketStatus } from './MarketStatus';
 
 export function StatusBar() {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between rounded-lg border bg-card p-3">
-      <div className=" flex items-between gap-4">
+    <div className="flex flex-col md:flex-row justify-between gap-2 rounded-lg border bg-card p-2">
+      <div className=" flex justify-between gap-4 ">
         <ConnectionStatus />
         <MarketStatus />
       </div>
