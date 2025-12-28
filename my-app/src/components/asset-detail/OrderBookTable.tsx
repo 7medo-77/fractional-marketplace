@@ -59,44 +59,49 @@ export const OrderBookTable = React.memo(function OrderBookTable({
           {rows.map((row, index) => (
             <TableRow key={index} className="hover:bg-muted/50 border-none h-8">
               {/* Bid Size */}
-              <TableCell className="p-0">
+              <TableCell className="p-0 text-center">
                 {row.bid && (
-                  <DepthCell
-                    value={row.bid.quantity}
-                    maxQuantity={maxQuantity}
-                    type="bid"
-                    align="right"
-                  />
+                  <span className="font-mono ">
+                    {row.bid.quantity}
+                  </span>
                 )}
               </TableCell>
 
               {/* Bid Price */}
               <TableCell className="p-0 text-right pr-2">
                 {row.bid && (
-                  <span className="font-mono text-green-500">
-                    {formatCurrency(row.bid.price)}
-                  </span>
+                  <DepthCell
+                    value={row.bid.quantity}
+                    displayValue={row.bid.price}
+                    maxQuantity={maxQuantity}
+                    type="bid"
+                    align="right"
+                  />
+                  // <span className="font-mono text-green-500">
+                  //   {formatCurrency(row.bid.price)}
+                  // </span>
                 )}
               </TableCell>
 
               {/* Ask Price */}
               <TableCell className="p-0 pl-2">
                 {row.ask && (
-                  <span className="font-mono text-red-500">
-                    {formatCurrency(row.ask.price)}
-                  </span>
-                )}
-              </TableCell>
-
-              {/* Ask Size */}
-              <TableCell className="p-0">
-                {row.ask && (
                   <DepthCell
                     value={row.ask.quantity}
+                    displayValue={row.ask.price}
                     maxQuantity={maxQuantity}
                     type="ask"
                     align="left"
                   />
+                )}
+              </TableCell>
+
+              {/* Ask Size */}
+              <TableCell className="p-0 text-center">
+                {row.ask && (
+                  <span className="font-mono ">
+                    {row.ask.quantity}
+                  </span>
                 )}
               </TableCell>
             </TableRow>
@@ -124,6 +129,7 @@ OrderBookTable.displayName = 'OrderBookTable';
  */
 interface DepthCellProps {
   value: number;
+  displayValue: number;
   maxQuantity: number;
   type: 'bid' | 'ask';
   align: 'left' | 'right';
@@ -131,6 +137,7 @@ interface DepthCellProps {
 
 const DepthCell = React.memo(function DepthCell({
   value,
+  displayValue,
   maxQuantity,
   type,
   align,
@@ -145,19 +152,19 @@ const DepthCell = React.memo(function DepthCell({
     >
       {/* Depth bar using CSS variable */}
       <div
-        className={`absolute inset-y-0 ${
+        className={`absolute inset-y-0 top-0 h-6 opacity-25 ${
           align === 'right' ? 'right-0' : 'left-0'
-        } ${isBid ? 'bg-green-500/20' : 'bg-red-500/20'}`}
+        } ${isBid ? 'bg-bid-color ' : 'bg-ask-color '}`}
         style={{ width: 'var(--order-depth)' }}
       />
 
       {/* Value */}
       <span
         className={`relative z-10 font-mono text-sm ${
-          align === 'right' ? 'float-right' : ''
-        }`}
+          align === 'right' ? 'float-right' : 'float-left'
+        } ${isBid ? 'text-green-500' : 'text-red-500'}`}
       >
-        {formatNumber(value)}
+        {formatCurrency(displayValue)}
       </span>
     </div>
   );
