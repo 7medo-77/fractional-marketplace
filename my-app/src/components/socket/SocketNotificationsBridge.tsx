@@ -10,6 +10,9 @@ export function SocketNotificationsBridge() {
   const setUserId = useSocketStore((s) => s.setUserId);
   const notifications = useSocketStore((s) => s.notifications);
   const clearNotifications = useSocketStore((s) => s.clearNotifications);
+  const isConnected = useSocketStore((s) => s.isConnected);
+
+  console.log('SocketNotificationsBridge render, isConnected:', isConnected);
 
   // Ensure socket is initialized + listeners are attached early
   useEffect(() => {

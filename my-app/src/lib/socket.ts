@@ -90,3 +90,17 @@ export function subscribeToAsset(socket: Socket, assetId: string): void {
 export function unsubscribeFromAsset(socket: Socket, assetId: string): void {
   socket.emit(CLIENT_EVENTS.UNSUBSCRIBE_ASSET, assetId);
 }
+
+/**
+ * Subscribe to user-specific order updates
+ */
+export function subscribeToUserOrders(socket: Socket, userId: string): void {
+  socket.emit(CLIENT_EVENTS.SUBSCRIBE_USER_ORDERS, userId);
+}
+
+/**
+ * Unsubscribe from user-specific order updates
+ */
+export function unsubscribeFromUserOrders(socket: Socket, userId: string): void {
+  socket.emit(CLIENT_EVENTS.UNSUBSCRIBE_USER_ORDERS, userId);
+}

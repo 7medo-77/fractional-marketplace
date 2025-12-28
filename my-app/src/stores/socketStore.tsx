@@ -16,6 +16,8 @@ import {
   unsubscribeFromAllAssets,
   subscribeToAsset,
   unsubscribeFromAsset,
+  subscribeToUserOrders,
+  unsubscribeFromUserOrders,
 } from '@/lib/socket';
 import {
   CLIENT_EVENTS,
@@ -91,10 +93,24 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   assetSubscriberCounts: {},
 
   userId: null,
-  setUserId: (userId) => set({ userId }),
 
+  // ✅ ADD THESE (they're used by SocketNotificationsBridge)
   notifications: [],
   clearNotifications: () => set({ notifications: [] }),
+
+  setUserId: (userId) => {
+    const s = get().socket;
+    const prevUserId = get().userId;
+
+    // Update state first
+    set({ userId });
+
+    // If we have a live socket, keep server-side room subscription in sync
+    if (s?.connected) {
+      if (prevUserId) unsubscribeFromUserOrders(s, prevUserId);
+      if (userId) subscribeToUserOrders(s, userId);
+    }
+  },
 
   connect: () => {
     const s = initializeSocket();
@@ -102,12 +118,19 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     if (!get().listenersAttached) {
       s.on('connect', () => {
         set({ isConnected: true });
+
+        // Global feed
         subscribeToAllAssets(s);
 
+        // Re-subscribe retained assets
         const counts = get().assetSubscriberCounts;
         for (const [assetId, count] of Object.entries(counts)) {
           if ((count ?? 0) > 0) subscribeToAsset(s, assetId);
         }
+
+        // Re-subscribe user room (critical for notifications across navigation)
+        const uid = get().userId;
+        if (uid) subscribeToUserOrders(s, uid);
       });
 
       s.on('disconnect', () => {
@@ -211,24 +234,28 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const s = get().socket;
     if (!s) return;
 
-    // Best-effort cleanup
     try {
       unsubscribeFromAllAssets(s);
+
+      const uid = get().userId;
+      if (uid) unsubscribeFromUserOrders(s, uid);
+
+      // Best-effort cleanup
       for (const [assetId, count] of Object.entries(get().assetSubscriberCounts)) {
         if ((count ?? 0) > 0) unsubscribeFromAsset(s, assetId);
       }
     } finally {
-      disconnectSocket();
-      set({
-        socket: null,
-        isConnected: false,
-        listenersAttached: false,
-        assetSubscriberCounts: {},
-        orderBooksByAssetId: {},
-        priceHistoryByAssetId: {},
-      });
-    }
-  },
+        disconnectSocket();
+        set({
+          socket: null,
+          isConnected: false,
+          listenersAttached: false,
+          assetSubscriberCounts: {},
+          orderBooksByAssetId: {},
+          priceHistoryByAssetId: {},
+        });
+      }
+    },
 
   updateAssetPrice: (update) => {
     set((state) => {
