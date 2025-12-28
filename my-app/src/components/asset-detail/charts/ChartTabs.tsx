@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { TrendingUp, BarChart3 } from 'lucide-react';
 import { PriceHistoryChart } from './price-history-chart/PriceHistoryChart';
 import { DepthChart } from './depth-chart/DepthChart';
 import { useSmartSocket } from '@/hooks/useSmartSocket';
-import { prepareDepthChartData } from '@/lib/utils/chart-utils';
+import { useDepthChartData } from '@/hooks/useDepthChartData';
 import { formatCurrency } from '@/lib/utils/utils';
 
 interface ChartTabsProps {
@@ -33,11 +33,7 @@ export function ChartTabs({ assetId, initialPrice }: ChartTabsProps) {
     bestAsk,
   } = useSmartSocket({ assetId, initialPrice });
 
-  // Prepare depth chart data
-  const depthChartData = useMemo(() => {
-    if (bids.length === 0 && asks.length === 0) return [];
-    return prepareDepthChartData(bids, asks, currentPrice);
-  }, [bids, asks, currentPrice]);
+  const depthChartData = useDepthChartData(bids, asks, currentPrice);
 
   return (
     <Card className="h-full">
