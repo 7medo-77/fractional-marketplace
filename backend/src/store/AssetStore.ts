@@ -29,6 +29,26 @@ class AssetStore {
         currentPrice: 12000,
         priceHistory: [{ price: 12000, timestamp: new Date().toISOString() }],
       },
+      {
+        id: 'asset_003',
+        name: 'Picasso Original Painting',
+        description: 'Authentic Picasso painting from 1932',
+        category: 'collectibles',
+        totalShares: 2000,
+        availableShares: 800,
+        currentPrice: 25000,
+        priceHistory: [{ price: 25000, timestamp: new Date().toISOString() }],
+      },
+      {
+        id: 'asset_004',
+        name: 'Rolex Submariner Watch',
+        description: 'Classic Rolex watch with diamond bezel',
+        category: 'collectibles',
+        totalShares: 1500,
+        availableShares: 600,
+        currentPrice: 7500,
+        priceHistory: [{ price: 7500, timestamp: new Date().toISOString() }],
+      },
     ];
 
     mockAssets.forEach((asset) => this.assets.set(asset.id, asset));
