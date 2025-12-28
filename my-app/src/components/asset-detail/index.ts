@@ -3,12 +3,12 @@
  */
 
 export { AssetInfo } from './AssetInfo';
-export { ChartTabs } from './ChartTabs';
-export { PriceHistoryChart } from './PriceHistoryChart';
-export { DepthChart } from './DepthChart';
-export { OrderBookPanel } from './OrderBookPanel';
-export { OrderBookTable } from './OrderBookTable';
-export { MobileOrderBookLadder } from './MobileOrderBookLadder';
+export { ChartTabs } from './charts/ChartTabs';
+export { PriceHistoryChart } from './charts/price-history-chart/PriceHistoryChart';
+export { DepthChart } from './charts/depth-chart/DepthChart';
+export { OrderBookPanel } from './order-book/OrderBookPanel';
+export { OrderBookTable } from './order-book/table/OrderBookTable';
+export { MobileOrderBookLadder } from './order-book/mobile/MobileOrderBookLadder';
 export { AssetDetailSkeleton } from './AssetDetailSkeleton';
 export { TradeInterface } from './TradeInterface';
 export type * from './AssetDetail.types';

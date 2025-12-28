@@ -49,13 +49,6 @@ export function AssetCardList({ initialAssets }: AssetCardListProps) {
 
   return (
     <div className="space-y-6">
-      {/* Connection Status */}
-      <div className="flex items-center justify-between">
-        <Badge variant={isConnected ? 'default' : 'secondary'}>
-          {isConnected ? '🟢 Live Prices' : '🔴 Connecting...'}
-        </Badge>
-      </div>
-
       {/* Search and Filter */}
       <div className="space-y-4">
         <div className="relative">

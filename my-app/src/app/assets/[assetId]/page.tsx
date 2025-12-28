@@ -7,8 +7,8 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getAssetById } from '@/lib/api';
 import { AssetInfo } from '@/components/asset-detail/AssetInfo';
-import { ChartTabs } from '@/components/asset-detail/ChartTabs';
-import { OrderBookPanel } from '@/components/asset-detail/OrderBookPanel';
+import { ChartTabs } from '@/components/asset-detail';
+import { OrderBookPanel } from '@/components/asset-detail/order-book/OrderBookPanel';
 import { AssetDetailSkeleton } from '@/components/asset-detail/AssetDetailSkeleton';
 import { TradeInterfaceWrapper } from '@/components/asset-detail/TradeInterfaceWrapper';
 
