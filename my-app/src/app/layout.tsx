@@ -5,6 +5,7 @@ import { Header } from "@/components/shared/header";
 import { Footer } from "@/components/shared/footer";
 import { Toaster } from "@/components/ui/sonner";
 import { UserIdInitializer } from "@/components/shared/UserIdInitializer";
+import { SocketNotificationsBridge } from '@/components/socket/SocketNotificationsBridge';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -32,6 +33,7 @@ export default function RootLayout({
         </div>
         <Toaster position="top-right" />
         <UserIdInitializer />
+        <SocketNotificationsBridge />
       </body>
     </html>
   );

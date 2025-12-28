@@ -51,12 +51,12 @@ export function Header() {
           >
             Assets
           </Link>
-          <Link
+          {/* <Link
             href="/portfolio"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
           >
             Portfolio
-          </Link>
+          </Link> */}
           <Link
             href="/history"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"

@@ -7,9 +7,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getSocket } from '@/lib/socket';
-import { CLIENT_EVENTS, SERVER_EVENTS, OrderConfirmedPayload, OrderFilledPayload } from '@/lib/socketEvents';
+import { CLIENT_EVENTS, OrderConfirmedPayload, OrderFilledPayload } from '@/lib/socketEvents';
 import { getOrCreateUserId } from '@/lib/utils/user-id';
+import { useSocketStore } from '@/stores/socketStore';
 import type { TradeFormState, OrderResult, PlaceOrderParams } from './TradeInterface.types';
 import { FORM_DEFAULTS } from './TradeInterface.constants';
 import { validateTradeForm } from '../../../lib/utils/TradeInterface-utils';
@@ -67,11 +67,11 @@ export function useTradeForm() {
  * Hook for placing orders via Socket.io
  */
 export function usePlaceOrder(assetId: string, isConnected: boolean) {
+  const placeOrderViaStore = useSocketStore((s) => s.placeOrder);
+
   const placeOrder = useCallback(
     async (params: Omit<PlaceOrderParams, 'assetId' | 'userId'>): Promise<OrderResult> => {
-      const socket = getSocket();
-
-      if (!socket?.connected || !isConnected) {
+      if (!isConnected) {
         toast.error('Not connected to server');
         return { success: false, error: 'Not connected to server' };
       }
@@ -82,53 +82,35 @@ export function usePlaceOrder(assetId: string, isConnected: boolean) {
         return { success: false, error: 'Unable to identify user' };
       }
 
-      const eventName = params.orderType === 'market'
-        ? CLIENT_EVENTS.PLACE_MARKET_ORDER
-        : CLIENT_EVENTS.PLACE_LIMIT_ORDER;
-
-      const payload = {
+      const ack = await placeOrderViaStore({
         assetId,
+        userId,
         type: params.type,
         quantity: params.quantity,
-        userId,
-        ...(params.orderType === 'limit' && { price: params.price }),
-      };
-
-      return new Promise((resolve) => {
-        socket.emit(
-          eventName,
-          payload,
-          (response: { ok: boolean; order?: { id: string }; totalCost?: number; error?: string }) => {
-            if (response.ok && response.order) {
-              const message = params.orderType === 'market'
-                ? `Market ${params.type} order filled!`
-                : `Limit ${params.type} order placed!`;
-
-              toast.success(message, {
-                description: params.orderType === 'market' && response.totalCost
-                  ? `Total: $${response.totalCost.toFixed(2)}`
-                  : `Order ID: ${response.order.id.slice(0, 8)}...`,
-              });
-
-              resolve({
-                success: true,
-                orderId: response.order.id,
-                totalCost: response.totalCost,
-              });
-            } else {
-              toast.error('Order failed', {
-                description: response.error || 'Unknown error',
-              });
-              resolve({
-                success: false,
-                error: response.error || 'Unknown error',
-              });
-            }
-          }
-        );
+        orderType: params.orderType,
+        price: params.orderType === 'limit' ? params.price : undefined,
       });
+
+      if (ack.ok && ack.order) {
+        const message =
+          params.orderType === 'market'
+            ? `Market ${params.type} order filled!`
+            : `Limit ${params.type} order placed!`;
+
+        toast.success(message, {
+          description:
+            params.orderType === 'market' && ack.totalCost
+              ? `Total: $${ack.totalCost.toFixed(2)}`
+              : `Order ID: ${ack.order.id.slice(0, 8)}...`,
+        });
+
+        return { success: true, orderId: ack.order.id, totalCost: ack.totalCost };
+      }
+
+      toast.error('Order failed', { description: ack.error || 'Unknown error' });
+      return { success: false, error: ack.error || 'Unknown error' };
     },
-    [assetId, isConnected]
+    [assetId, isConnected, placeOrderViaStore]
   );
 
   return { placeOrder };

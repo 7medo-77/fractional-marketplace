@@ -53,7 +53,7 @@ export function TradeInterface({
   }, []);
 
   // Listen for order fill events
-  useOrderEvents(userId);
+  // useOrderEvents(userId);
 
   // Validation
   const validation = validateTradeForm(form, isConnected);

@@ -62,7 +62,7 @@ export function prepareDepthChartData(
   // Add current price as midpoint
   const midpoint: DepthChartPoint = {
     price: currentPrice,
-    bidDepth: bidCumulative,
+    bidDepth: 0,
     askDepth: 0,
   };
 

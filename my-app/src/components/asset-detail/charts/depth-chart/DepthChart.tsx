@@ -94,7 +94,7 @@ export const DepthChart = React.memo(function DepthChart({
           strokeDasharray="5 5"
           strokeWidth={2}
           label={{
-            value: 'Current',
+            value: 'Current Price',
             position: 'top',
             fill: 'var(--foreground)',
             fontSize: 10,

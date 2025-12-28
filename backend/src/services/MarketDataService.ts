@@ -35,7 +35,8 @@ const DRIFT_CONFIG = {
  */
 const LIMIT_FILL_CONFIG = {
   /** Probability of filling a limit order per tick (0.1% = 0.001) */
-  FILL_PROBABILITY: 0.001,
+  // FILL_PROBABILITY: 0.001,
+  FILL_PROBABILITY: 0.05,
   /** Maximum orders to check per tick per asset */
   MAX_ORDERS_PER_TICK: 10,
 };
@@ -465,12 +466,12 @@ class MarketDataService {
             price: b.price,
             quantity: b.quantity,
             total: b.total,
-          })),
+          })).slice(0, 50), // Limit to top 50 levels
           asks: orderBook.asks.map((a) => ({
             price: a.price,
             quantity: a.quantity,
             total: a.total,
-          })),
+          })).slice(0, 50), // Limit to top 50 levels
           timestamp: orderBook.lastUpdated,
         },
       });

@@ -17,7 +17,7 @@ export function useSocket() {
 
     // Cleanup on unmount
     return () => {
-      disconnect();
+      // disconnect();
     };
   }, [connect, disconnect]);
 

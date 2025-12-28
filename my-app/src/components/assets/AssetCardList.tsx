@@ -13,7 +13,7 @@ import type { Asset } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface AssetCardListProps {
   initialAssets: Asset[];
@@ -22,6 +22,7 @@ interface AssetCardListProps {
 export function AssetCardList({ initialAssets }: AssetCardListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const router = useRouter();
 
   // Initialize WebSocket connection
   const { isConnected } = useSocket();
@@ -31,6 +32,11 @@ export function AssetCardList({ initialAssets }: AssetCardListProps) {
     const cats = new Set(initialAssets.map((asset) => asset.category));
     return Array.from(cats);
   }, [initialAssets]);
+
+  const handleAssetClick = (assetId: string) => {
+    // Handle asset click if needed
+    router.push(`/assets/${assetId}`);
+  }
 
   // Filter assets
   const filteredAssets = useMemo(() => {
@@ -97,7 +103,7 @@ export function AssetCardList({ initialAssets }: AssetCardListProps) {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredAssets.map((asset) => (
-            <Link key={asset.id} href={`/assets/${asset.id}`}><AssetCard asset={asset} /></Link>
+            <AssetCard key={asset.id} asset={asset} onClick={() => handleAssetClick(asset.id)} />
           ))}
         </div>
       )}
